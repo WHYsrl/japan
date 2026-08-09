@@ -120,14 +120,20 @@ app.post('/api/ai', async (req, res) => {
       headers: { 'x-api-key': key, 'anthropic-version': '2023-06-01', 'content-type': 'application/json' },
       body: JSON.stringify({
         model: process.env.AI_MODEL || 'claude-opus-5',
-        max_tokens: 500,
+        max_tokens: 2000,
         system: "Sei l'assistente del viaggio in Giappone della famiglia Bonifati (10-25 agosto 2026; Leo, il figlio, è celiaco). Ricevi il programma e una nuova idea. Rispondi in italiano, massimo 120 parole, tono pratico e caldo: 1) di' se e DOVE incastrare l'idea (giorno e fascia oraria, citando cosa c'è già in programma), 2) avvertenze utili (caldo di agosto, orari di apertura da verificare, prenotazioni, distanze, glutine se si mangia). Se l'idea non sta in piedi, dillo con garbo e proponi un'alternativa.",
         messages: [{ role: 'user', content: 'PROGRAMMA:\n' + itinerary + '\n\nNUOVA IDEA (di ' + who + '): ' + text }]
       })
     });
     const j = await r.json();
     if (j.error) return res.status(502).json({ error: j.error.message || 'errore API Anthropic' });
-    res.json({ suggestion: (j.content && j.content[0] && j.content[0].text) || '' });
+    const textOut = (Array.isArray(j.content) ? j.content : [])
+      .filter(b => b && b.type === 'text').map(b => b.text).join('\n').trim();
+    if (!textOut) {
+      console.error('AI: risposta senza testo —', JSON.stringify(j).slice(0, 800));
+      return res.status(502).json({ error: 'Risposta AI senza testo (stop_reason: ' + (j.stop_reason || '?') + ') — riprova' });
+    }
+    res.json({ suggestion: textOut });
   } catch (e) { res.status(500).json({ error: String(e) }); }
 });
 
