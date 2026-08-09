@@ -90,6 +90,7 @@ a.lnk.tik{border-color:#E0D3E6;background:#F6F1F8;color:var(--murasaki)}
 .noteform input[type=time]{border:1.5px solid var(--line);border-radius:10px;padding:9px;font-family:inherit;font-weight:700;font-size:14px;background:#fff}
 .noteform input[type=text]{flex:1;min-width:150px;border:1.5px solid var(--line);border-radius:10px;padding:9px 12px;font-family:inherit;font-size:14px;background:#fff}
 .noteform button{border:0;background:var(--matcha);color:#fff;font-family:inherit;font-weight:900;border-radius:10px;padding:9px 16px;font-size:13px}
+.noteform .nf-full{flex:1 1 100%;min-width:100%}
 .badge{display:inline-block;font-size:11px;font-weight:900;border-radius:6px;padding:2px 7px;margin-left:6px;vertical-align:2px}
 .badge.cash{background:#FDF1E3;color:#A56A1F}.badge.warn{background:#FBE9E8;color:var(--shu-d)}
 .badge.ok{background:#EAF4ED;color:var(--matcha)}
@@ -173,6 +174,22 @@ a.tel{color:var(--shu);text-decoration:none;font-weight:700}
 .prev-x{border:0;background:var(--ink);color:#fff;border-radius:99px;width:26px;height:26px;font-family:inherit;font-weight:900}
 .idea-det{font-size:12.5px;color:var(--sub);margin-top:4px;line-height:1.5}
 .idea-ph{width:100%;border-radius:12px;margin-top:10px;border:1.5px solid var(--line)}
+
+/* ── modifica voci itinerario ── */
+.sedit{border:0;background:none;font-family:inherit;font-size:13px;margin-left:6px;color:var(--sub);opacity:.4;vertical-align:1px;padding:0 3px}
+.sedit.did{color:var(--murasaki);opacity:1}
+.restday{display:block;width:100%;border:1.5px dashed var(--line);background:none;border-radius:12px;padding:9px;margin:6px 0;font-family:inherit;font-size:12px;font-weight:700;color:var(--sub)}
+#stopedit{position:fixed;inset:0;background:rgba(43,35,32,.45);z-index:60;display:none;align-items:flex-end}
+#stopedit.on{display:flex}
+.se-box{background:var(--washi);border-radius:20px 20px 0 0;padding:20px 18px calc(20px + env(safe-area-inset-bottom));width:100%;max-width:640px;margin:0 auto}
+.se-t{font-weight:900;font-size:16px;margin-bottom:4px}
+.se-l{display:block;font-size:11px;font-weight:900;color:var(--sub);margin:10px 0 4px}
+.se-box input{width:100%;border:1.5px solid var(--line);border-radius:12px;padding:10px 12px;font-family:inherit;font-size:14px;background:#fff}
+.se-row{display:flex;gap:8px;margin-top:12px}
+.se-b{flex:1;border:1.5px solid var(--line);border-radius:12px;padding:12px;font-family:inherit;font-weight:900;font-size:13.5px;background:var(--card);color:var(--ink)}
+.se-b.p{background:var(--murasaki);border-color:var(--murasaki);color:#fff}
+.se-b.r{background:#FBE9E8;border-color:#EFC9C7;color:var(--shu-d)}
+.se-b.g{background:#EAF4ED;border-color:#C8DFD0;color:var(--matcha)}
 
 /* ── mappe ── */
 .mapchip{display:inline-block;border:1.5px solid var(--line);background:var(--card);border-radius:999px;padding:7px 13px;margin:3px 6px 3px 0;font-size:12.5px;font-weight:700;color:var(--ink);text-decoration:none}
@@ -351,6 +368,24 @@ nav button.on{color:var(--shu)}
   <img id="qb-img" src="" alt="QR">
   <div class="qbl" id="qb-l"></div>
   <div class="qbs" id="qb-s"></div>
+</div>
+
+<div id="stopedit">
+  <div class="se-box">
+    <div class="se-t">Modifica voce</div>
+    <label class="se-l">Orario</label><input type="time" id="se-h">
+    <label class="se-l">Titolo</label><input type="text" id="se-n">
+    <label class="se-l">Nota (riga sotto il titolo)</label><input type="text" id="se-o">
+    <label class="se-l" id="se-lkl">Link Google Maps</label><input type="text" id="se-lk">
+    <div class="se-row">
+      <button id="se-save" class="se-b p">💾 Salva</button>
+      <button id="se-del" class="se-b r">🗑 Elimina voce</button>
+    </div>
+    <div class="se-row">
+      <button id="se-rest" class="se-b g" hidden>↩ Ripristina originale</button>
+      <button id="se-x" class="se-b">Annulla</button>
+    </div>
+  </div>
 </div>
 
 <nav>
@@ -729,33 +764,49 @@ function render(){
     (FLIGHTS[d.d]?'<div class="fstat" id="fstat"></div>':'')+
     (CITY[d.d]?'<div style="margin-top:8px"><a class="lnk map" target="_blank" href="https://www.google.com/search?q='+encodeURIComponent('meteo '+CITY[d.d][0]+' oggi orario')+'">🌤 Meteo '+CITY[d.d][0]+' ora per ora</a></div>':'')+
     '</div><div class="tl">';
-  const notes=(NOTES[d.d]||[]).map((x,i)=>({h:x.h,n:x.t,un:true,ni:i}));
-  const items=d.st.concat(notes).sort((a,b)=>a.h<b.h?-1:a.h>b.h?1:0);
+  const notes=(NOTES[d.d]||[]).map((x,i)=>({h:x.h,n:x.t,l:x.l,dd:x.d,un:true,ni:i}));
+  const items=effStops(sel).concat(notes).sort((a,b)=>a.h<b.h?-1:a.h>b.h?1:0);
   items.forEach(s=>{
     if(s.un){
-      h+='<div class="stop un"><div class="s-time">'+s.h+'</div><div class="s-name">📝 '+esc(s.n)+'<button class="ndel" data-i="'+s.ni+'">✕</button></div></div>';
+      h+='<div class="stop un"><div class="s-time">'+s.h+'</div><div class="s-name">📝 '+esc(s.n)+'<button class="sedit" data-ni="'+s.ni+'">✎</button><button class="ndel" data-i="'+s.ni+'">✕</button></div>'
+        +(s.dd?'<div class="s-note">'+esc(s.dd)+'</div>':'')
+        +(s.l&&/^https?:\/\//.test(s.l)?'<div class="s-links"><a class="lnk map" target="_blank" rel="noopener" href="'+esc(s.l)+'">📍 Maps</a></div>':'')
+        +'</div>';
       return;
     }
-    const ex=EXTRAS[s.n];
-    if(TT[s.n])h+='<div class="leg">'+TT[s.n]+'</div>';
+    const n0=s._n0||s.n;
+    const ex=EXTRAS[n0];
+    if(TT[n0])h+='<div class="leg">'+TT[n0]+'</div>';
     h+='<div class="stop '+(s.c||'')+(ex?' hasx':'')+'"><div class="s-time">'+s.h+'<span class="wic" data-h="'+s.h+'"></span></div><div class="s-name">'+s.n+
        (s.b?'<span class="badge '+s.b+'">'+(s.b==='cash'?'💴 CONTANTI':s.b==='warn'?'⚠':s.b==='opt'?'⏳ SE AVANZA TEMPO':'✓')+'</span>':'')+
-       (ex?'<span class="xhint">ⓘ</span>':'')+'</div>'+
+       (ex?'<span class="xhint">ⓘ</span>':'')+'<button class="sedit'+(s._mod?' did':'')+'" data-si="'+s.si+'">✎</button></div>'+
        (s.o?'<div class="s-note">'+s.o+'</div>':'')+
        (ex?'<div class="s-x">'+ex+'</div>':'');
     let lk='';
     if(s.m)lk+='<a class="lnk map" target="_blank" href="'+gm(s.m)+'">📍 Maps</a>';
-    if(LNKX[s.n])LNKX[s.n].forEach(x=>{lk+='<a class="lnk tik" target="_blank" href="'+x[0]+'">'+x[1]+'</a>';});
-    if(QRS[s.n])QRS[s.n].forEach(qq=>{lk+='<button class="lnk tik" onclick="event.stopPropagation();showQR(\''+qq[0]+'\',\''+qq[1].replace(/'/g,"\\'")+'\',\''+qq[2].replace(/'/g,"\\'")+'\')">🎫 '+qq[3]+'</button>';});
+    if(LNKX[n0])LNKX[n0].forEach(x=>{lk+='<a class="lnk tik" target="_blank" href="'+x[0]+'">'+x[1]+'</a>';});
+    if(QRS[n0])QRS[n0].forEach(qq=>{lk+='<button class="lnk tik" onclick="event.stopPropagation();showQR(\''+qq[0]+'\',\''+qq[1].replace(/'/g,"\\'")+'\',\''+qq[2].replace(/'/g,"\\'")+'\')">🎫 '+qq[3]+'</button>';});
     if(lk)h+='<div class="s-links">'+lk+'</div>';
     h+='</div>';});
-  h+='</div><button class="addbtn" id="addbtn">＋ Aggiungi appunto o incastro orario</button>'+
-     '<div class="noteform" id="nform"><input type="time" id="nf-h" value="12:00"><input type="text" id="nf-t" placeholder="Es. ritiro hanko · chiamata di lavoro"><button id="nf-s">Salva</button></div>';
+  const delK=DAYS[sel].st.map((x,si)=>okey(sel,si)).filter(k=>OVR[k]&&OVR[k].del);
+  h+='</div>'+(delK.length?'<button class="restday" id="restday">↩ Ripristina '+delK.length+(delK.length>1?' voci eliminate':' voce eliminata')+'</button>':'')+
+     '<button class="addbtn" id="addbtn">＋ Aggiungi appunto o incastro orario</button>'+
+     '<div class="noteform" id="nform"><input type="time" id="nf-h" value="12:00"><input type="text" id="nf-t" placeholder="Es. ritiro hanko · chiamata di lavoro">'+
+     '<input type="text" id="nf-l" class="nf-full" placeholder="🔗 Link Google Maps (facoltativo)">'+
+     '<input type="text" id="nf-d" class="nf-full" placeholder="📝 Dettagli (facoltativo)">'+
+     '<button id="nf-s">Salva</button></div>';
   $('#dayview').innerHTML=h;
   document.querySelectorAll('.stop.hasx').forEach(el=>el.addEventListener('click',e=>{if(e.target.closest('a,button'))return;el.classList.toggle('open');}));
   document.querySelectorAll('.ndel').forEach(b=>b.onclick=e=>{e.stopPropagation();NOTES[d.d].splice(+b.dataset.i,1);saveNotes();render();});
   $('#addbtn').onclick=()=>$('#nform').classList.toggle('on');
-  $('#nf-s').onclick=()=>{const t=$('#nf-t').value.trim();if(!t)return;(NOTES[d.d]=NOTES[d.d]||[]).push({h:$('#nf-h').value||'12:00',t:t});saveNotes();render();};
+  $('#nf-s').onclick=()=>{const t=$('#nf-t').value.trim();if(!t)return;
+    let l=$('#nf-l').value.trim();if(l&&!/^https?:\/\//i.test(l))l='https://'+l;
+    (NOTES[d.d]=NOTES[d.d]||[]).push({h:$('#nf-h').value||'12:00',t:t,l:l,d:$('#nf-d').value.trim()});
+    saveNotes();render();renderMapDays();};
+  document.querySelectorAll('.sedit').forEach(b=>b.onclick=e=>{e.stopPropagation();
+    if(b.dataset.ni!=null)openNoteEditor(+b.dataset.ni);else openEditor(sel,+b.dataset.si);});
+  const rb=document.getElementById('restday');
+  if(rb)rb.onclick=async()=>{delK.forEach(k=>delete OVR[k]);await saveOvr();render();renderMapDays();};
   chips.children[sel]&&chips.children[sel].scrollIntoView({inline:'center',block:'nearest'});
   loadWeather(d);
   loadFlight(d);
@@ -809,7 +860,7 @@ let NOTES={};const NKEY='giappone2026-notes';
 function esc(t){return t.replace(/[<>&"]/g,c=>({'<':'&lt;','>':'&gt;','&':'&amp;','"':'&quot;'}[c]));}
 async function loadNotes(){const v=await stGet(NKEY);if(v)try{NOTES=JSON.parse(v);}catch(e){}}
 async function saveNotes(){await stSet(NKEY,JSON.stringify(NOTES));}
-loadNotes().then(render);
+loadNotes().then(()=>{render();renderMapDays();});
 
 /* codici */
 function codeRows(arr){return arr.map(([l,v])=>'<div class="crow"><span class="c-l">'+l+'</span><span style="display:flex;gap:8px;align-items:center"><span class="c-v mono">'+v+'</span>'+(/^[A-Z0-9_\-]{5,}$/.test(v)?'<button class="copy" data-v="'+v+'">COPIA</button>':'')+'</span></div>').join('');}
@@ -854,9 +905,59 @@ window.showQR=function(id,label,sub){
   document.getElementById('qrbig').classList.add('on');
 };
 
+/* ───────── MODIFICA VOCI ITINERARIO E INCASTRI (condivisa) ───────── */
+const OKEY='giappone2026-ovr';
+let OVR={},ED=null;
+function okey(di,si){return di+'|'+si;}
+function effStops(di){const d=DAYS[di];return d.st.map((s,si)=>{const o=OVR[okey(di,si)];
+  if(o&&o.del)return null;
+  const m=Object.assign({},s,{si:si,_n0:s.n});
+  if(o){m.h=o.h||s.h;m.n=o.n||s.n;if('o' in o)m.o=o.o;m._mod=true;}
+  return m;}).filter(Boolean);}
+async function loadOvr(){await READY;try{const v=await stGet(OKEY);if(v)OVR=JSON.parse(v)||{};}catch(e){}render();renderMapDays();}
+async function saveOvr(){await stSet(OKEY,JSON.stringify(OVR));}
+function seLink(show){$('#se-lk').hidden=!show;$('#se-lkl').hidden=!show;}
+function openEditor(di,si){ED=[di,si];const s=DAYS[di].st[si],o=OVR[okey(di,si)]||{};
+  $('#se-h').value=o.h||s.h||'12:00';$('#se-n').value=o.n||s.n||'';$('#se-o').value=('o' in o)?o.o:(s.o||'');
+  seLink(false);
+  const del=$('#se-del');del.textContent='🗑 Elimina voce';del.dataset.arm='';
+  $('#se-rest').hidden=!OVR[okey(di,si)];
+  $('#stopedit').classList.add('on');}
+function openNoteEditor(ni){const d=DAYS[sel],x=(NOTES[d.d]||[])[ni];if(!x)return;
+  ED={note:ni};
+  $('#se-h').value=x.h||'12:00';$('#se-n').value=x.t||'';$('#se-o').value=x.d||'';$('#se-lk').value=x.l||'';
+  seLink(true);
+  const del=$('#se-del');del.textContent='🗑 Elimina voce';del.dataset.arm='';
+  $('#se-rest').hidden=true;
+  $('#stopedit').classList.add('on');}
+$('#se-x').onclick=()=>$('#stopedit').classList.remove('on');
+$('#stopedit').onclick=e=>{if(e.target.id==='stopedit')$('#stopedit').classList.remove('on');};
+$('#se-save').onclick=async()=>{
+  if(ED&&ED.note!=null){
+    const d=DAYS[sel],x=(NOTES[d.d]||[])[ED.note];
+    if(x){x.h=$('#se-h').value||x.h;x.t=$('#se-n').value.trim()||x.t;x.d=$('#se-o').value.trim();
+      let l=$('#se-lk').value.trim();if(l&&!/^https?:\/\//i.test(l))l='https://'+l;x.l=l;}
+    $('#stopedit').classList.remove('on');await saveNotes();render();renderMapDays();return;
+  }
+  const di=ED[0],si=ED[1],s=DAYS[di].st[si];
+  OVR[okey(di,si)]={h:$('#se-h').value||s.h,n:$('#se-n').value.trim()||s.n,o:$('#se-o').value.trim()};
+  $('#stopedit').classList.remove('on');await saveOvr();render();renderMapDays();};
+$('#se-del').onclick=async()=>{const b=$('#se-del');
+  if(b.dataset.arm!=='1'){b.dataset.arm='1';b.textContent='Sicuro? Tocca ancora';return;}
+  if(ED&&ED.note!=null){const d=DAYS[sel];(NOTES[d.d]||[]).splice(ED.note,1);
+    $('#stopedit').classList.remove('on');await saveNotes();render();renderMapDays();return;}
+  OVR[okey(ED[0],ED[1])]={del:1};
+  $('#stopedit').classList.remove('on');await saveOvr();render();renderMapDays();};
+$('#se-rest').onclick=async()=>{delete OVR[okey(ED[0],ED[1])];
+  $('#stopedit').classList.remove('on');await saveOvr();render();renderMapDays();};
+loadOvr();
+
 /* ───────── IDEE DI FAMIGLIA ───────── */
 let IDEAS=[],IDEA_WHO='Flo';
-function compactPlan(){return DAYS.map(d=>d.d.slice(5)+' · '+d.t+': '+d.st.map(s=>s.h+' '+s.n).join(' | ')).join('\n');}
+function compactPlan(){return DAYS.map((d,di)=>{
+  const ns=(NOTES[d.d]||[]).map(x=>x.h+' '+x.t+(x.d?' ('+x.d+')':''));
+  return d.d.slice(5)+' · '+d.t+': '+effStops(di).map(s=>s.h+' '+s.n).concat(ns).join(' | ');
+}).join('\n');}
 document.querySelectorAll('#who-row .who').forEach(b=>b.onclick=()=>{
   document.querySelectorAll('#who-row .who').forEach(x=>x.classList.remove('sel'));
   b.classList.add('sel');IDEA_WHO=b.dataset.w;});
@@ -897,7 +998,10 @@ async function askAI(idea){
 }
 async function ideaAction(act,id,btn){
   const idea=IDEAS.find(x=>x.id===id);if(!idea)return;
-  if(act==='del'){await fetch('/api/ideas/'+id,{method:'DELETE'});IDEAS=IDEAS.filter(x=>x.id!==id);renderIdeas();}
+  if(act==='del'){
+    if(btn.dataset.arm!=='1'){btn.dataset.arm='1';btn.textContent='Sicuro? Tocca ancora';btn.style.color='var(--shu-d)';
+      setTimeout(()=>{if(btn.isConnected){btn.dataset.arm='';btn.textContent='Elimina';btn.style.color='';}},3000);return;}
+    await fetch('/api/ideas/'+id,{method:'DELETE'});IDEAS=IDEAS.filter(x=>x.id!==id);renderIdeas();}
   if(act==='done'){idea.done=!idea.done;await fetch('/api/ideas/'+id,{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify({done:idea.done})});renderIdeas();}
   if(act==='ai'){btn.disabled=true;btn.textContent='🔮 Claude ci pensa…';await askAI(idea);renderIdeas();}
 }
@@ -956,11 +1060,18 @@ const BASES=[
  ["Benesse House · Naoshima","22–23/8","Benesse House Naoshima"],
  ["Centara Grand Namba · Osaka","23–24/8","Centara Grand Hotel Osaka Namba"]];
 $('#map-bases').innerHTML=BASES.map(b=>'<div class="cardbox" style="padding:12px 14px;margin-bottom:8px"><div class="crow" style="border:0;padding:0"><span><span class="c-v">🏨 '+b[0]+'</span><br><span class="c-l">'+b[1]+'</span></span><a class="mapchip go" style="margin:0" href="'+gm(b[2])+'" target="_blank" rel="noopener">🗺 Apri</a></div></div>').join('');
-$('#map-days').innerHTML=DAYS.map(d=>{
-  const ls=d.st.filter(s=>s.m);if(!ls.length)return '';
-  return '<div class="map-day"><div class="map-dt">'+(+d.d.split('-')[2])+'/'+(+d.d.split('-')[1])+' · '+esc(d.t)+'</div>'
-    +ls.map(s=>'<a class="mapchip" target="_blank" rel="noopener" href="'+gm(s.m)+'">'+esc(s.n)+'</a>').join('')+'</div>';
-}).join('');
+function renderMapDays(){
+  $('#map-days').innerHTML=DAYS.map((d,di)=>{
+    const ls=effStops(di).filter(s=>s.m);
+    const nl=(NOTES[d.d]||[]).filter(x=>x.l&&/^https?:\/\//.test(x.l));
+    if(!ls.length&&!nl.length)return '';
+    return '<div class="map-day"><div class="map-dt">'+(+d.d.split('-')[2])+'/'+(+d.d.split('-')[1])+' · '+esc(d.t)+'</div>'
+      +ls.map(s=>'<a class="mapchip" target="_blank" rel="noopener" href="'+gm(s.m)+'">'+esc(s.n)+'</a>').join('')
+      +nl.map(x=>'<a class="mapchip" target="_blank" rel="noopener" style="border-color:var(--matcha)" href="'+esc(x.l)+'">📝 '+esc(x.t)+'</a>').join('')
+      +'</div>';
+  }).join('');
+}
+renderMapDays();
 function renderMapIdeas(){
   const el=document.getElementById('map-ideas');if(!el)return;
   const wl=IDEAS.filter(i=>i.link&&/^https?:\/\//.test(i.link));
