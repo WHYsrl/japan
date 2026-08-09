@@ -162,6 +162,8 @@ a.tel{color:var(--shu);text-decoration:none;font-weight:700}
 .idea-t{font-size:14px;font-weight:700;line-height:1.5}
 .idea-ai{margin-top:10px;background:#F4F0FA;border:1.5px dashed #D8CCE8;border-radius:12px;padding:10px 12px;font-size:13px;line-height:1.55;white-space:pre-wrap}
 .idea-ai .ai-h{font-size:11px;font-weight:900;color:var(--murasaki);margin-bottom:4px}
+.idea-ai.err{background:#FBE9E8;border-color:#EFC9C7}
+.idea-ai.err .ai-h{color:var(--shu-d)}
 .idea-actions{display:flex;gap:8px;margin-top:10px}
 .idea-actions button{border:1.5px solid var(--line);background:var(--washi);border-radius:10px;font-size:11px;font-weight:900;padding:6px 10px;color:var(--sub);font-family:inherit}
 
@@ -833,6 +835,7 @@ function renderIdeas(){
     +'<div class="idea-meta"><span>💡 '+esc(i.who||'?')+'</span><span>'+esc((i.ts||'').slice(8,10)+'/'+(i.ts||'').slice(5,7))+'</span></div>'
     +'<div class="idea-t">'+esc(i.text||'')+'</div>'
     +(i.ai?'<div class="idea-ai"><div class="ai-h">CLAUDE SUGGERISCE</div>'+esc(i.ai)+'</div>':'')
+    +(!i.ai&&i._err?'<div class="idea-ai err"><div class="ai-h">⚠ SUGGERIMENTO NON ARRIVATO</div>'+esc(i._err)+'</div>':'')
     +'<div class="idea-actions">'
     +(!i.ai?'<button data-act="ai" data-id="'+i.id+'">🔮 Chiedi a Claude</button>':'')
     +'<button data-act="done" data-id="'+i.id+'">'+(i.done?'Riapri':'✓ Fatta')+'</button>'
@@ -841,15 +844,20 @@ function renderIdeas(){
   el.querySelectorAll('button[data-act]').forEach(b=>b.onclick=()=>ideaAction(b.dataset.act,b.dataset.id,b));
 }
 async function askAI(idea){
+  idea._err=null;
   try{
     const r=await fetch('/api/ai',{method:'POST',headers:{'Content-Type':'application/json'},
       body:JSON.stringify({text:idea.text,who:idea.who,itinerary:compactPlan()})});
-    const j=await r.json();
-    if(r.ok&&j.suggestion){
+    let j=null;try{j=await r.json();}catch(e){}
+    if(r.ok&&j&&j.suggestion){
       idea.ai=j.suggestion;
       await fetch('/api/ideas/'+idea.id,{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify({ai:j.suggestion})});
-    }else if(r.status===404){$('#ideanote').textContent='Idea salvata ✓ · suggerimenti AI non attivi (manca ANTHROPIC_API_KEY su Render).';}
-  }catch(e){}
+    }else if(r.status===404){
+      idea._err='Manca ANTHROPIC_API_KEY su Render: japan-2026 → Environment → Add environment variable.';
+    }else{
+      idea._err=(j&&j.error)?String(j.error):('Errore HTTP '+r.status+' dal server.');
+    }
+  }catch(e){idea._err='Errore di rete: '+String(e.message||e);}
 }
 async function ideaAction(act,id,btn){
   const idea=IDEAS.find(x=>x.id===id);if(!idea)return;
