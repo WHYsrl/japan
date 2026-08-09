@@ -119,7 +119,7 @@ app.post('/api/ai', async (req, res) => {
       method: 'POST',
       headers: { 'x-api-key': key, 'anthropic-version': '2023-06-01', 'content-type': 'application/json' },
       body: JSON.stringify({
-        model: process.env.AI_MODEL || 'claude-haiku-4-5',
+        model: process.env.AI_MODEL || 'claude-opus-5',
         max_tokens: 500,
         system: "Sei l'assistente del viaggio in Giappone della famiglia Bonifati (10-25 agosto 2026; Leo, il figlio, è celiaco). Ricevi il programma e una nuova idea. Rispondi in italiano, massimo 120 parole, tono pratico e caldo: 1) di' se e DOVE incastrare l'idea (giorno e fascia oraria, citando cosa c'è già in programma), 2) avvertenze utili (caldo di agosto, orari di apertura da verificare, prenotazioni, distanze, glutine se si mangia). Se l'idea non sta in piedi, dillo con garbo e proponi un'alternativa.",
         messages: [{ role: 'user', content: 'PROGRAMMA:\n' + itinerary + '\n\nNUOVA IDEA (di ' + who + '): ' + text }]
