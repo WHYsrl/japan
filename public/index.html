@@ -1,0 +1,788 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex, nofollow">
+<meta name="theme-color" content="#FBF7EF">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="日本 2026">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='22' fill='%23FBF7EF'/><circle cx='50' cy='50' r='26' fill='%23C73E3A'/></svg>">
+<link rel="apple-touch-icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' fill='%23FBF7EF'/><circle cx='50' cy='50' r='30' fill='%23C73E3A'/></svg>">
+<title>日本 2026 · Bonifati</title>
+<link href="https://fonts.googleapis.com/css2?family=Zen+Maru+Gothic:wght@400;700;900&display=swap" rel="stylesheet">
+<style>
+:root{
+  --washi:#FBF7EF; --ink:#2B2320; --shu:#C73E3A; --shu-d:#A32F2C;
+  --murasaki:#5B3A66; --matcha:#4A7C59; --kin:#B8934A;
+  --card:#FFFFFF; --line:#E7DFD2; --sub:#7A6F63;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{font-family:'Zen Maru Gothic',-apple-system,sans-serif;background:var(--washi);color:var(--ink);
+  padding-bottom:calc(76px + env(safe-area-inset-bottom))}
+.mono{font-family:ui-monospace,SFMono-Regular,Menlo,monospace}
+
+/* ── header ── */
+header{position:sticky;top:0;z-index:20;background:var(--washi);border-bottom:1px solid var(--line);
+  padding:14px 18px 10px}
+.h-row{display:flex;align-items:baseline;justify-content:space-between}
+.h-title{font-weight:900;font-size:20px;letter-spacing:.02em}
+.h-title .jp{color:var(--shu)}
+.h-day{font-size:12px;color:var(--sub);font-weight:700}
+
+/* ── tabs content ── */
+main{max-width:640px;margin:0 auto;padding:16px 16px 24px}
+.tab{display:none}.tab.on{display:block}
+h2{font-size:15px;font-weight:900;margin:22px 0 10px;display:flex;align-items:center;gap:8px}
+h2 .bar{width:14px;height:4px;border-radius:2px;background:var(--shu)}
+h2.v .bar{background:var(--murasaki)} h2.g .bar{background:var(--matcha)} h2.k .bar{background:var(--kin)}
+
+/* ── day chips ── */
+.chips{display:flex;gap:6px;overflow-x:auto;padding:4px 2px 10px;-webkit-overflow-scrolling:touch;scrollbar-width:none}
+.chips::-webkit-scrollbar{display:none}
+.chip{flex:0 0 auto;border:1.5px solid var(--line);background:var(--card);border-radius:999px;
+  padding:7px 13px;font-size:13px;font-weight:700;color:var(--sub);font-family:inherit}
+.chip.now{border-color:var(--shu);color:var(--shu);position:relative}
+.chip.sel{background:var(--ink);border-color:var(--ink);color:var(--washi)}
+
+/* ── day view ── */
+.day-head{margin:8px 0 4px}
+.day-title{font-size:22px;font-weight:900}
+.day-sub{font-size:13px;color:var(--sub);margin-top:2px}
+.today-tag{display:inline-block;background:var(--shu);color:#fff;font-size:11px;font-weight:900;
+  border-radius:999px;padding:2px 10px;margin-left:8px;vertical-align:3px}
+
+/* metro-line timeline (firma) */
+.tl{position:relative;margin:16px 0 8px;padding-left:34px}
+.tl::before{content:"";position:absolute;left:11px;top:10px;bottom:10px;width:3px;
+  background:var(--shu);border-radius:2px;opacity:.9}
+.stop{position:relative;padding:9px 0 13px}
+.stop::before{content:"";position:absolute;left:-29px;top:15px;width:13px;height:13px;border-radius:50%;
+  background:var(--washi);border:3.5px solid var(--shu)}
+.stop.tr::before{border-color:var(--murasaki)}
+.stop.eat::before{border-color:var(--matcha)}
+.s-time{font-size:12px;font-weight:700;color:var(--shu);letter-spacing:.04em}
+.stop.tr .s-time{color:var(--murasaki)} .stop.eat .s-time{color:var(--matcha)}
+.s-name{font-size:16px;font-weight:700;line-height:1.35}
+.s-note{font-size:13px;color:var(--sub);line-height:1.45;margin-top:2px}
+.s-links{margin-top:6px;display:flex;gap:6px;flex-wrap:wrap}
+a.lnk{display:inline-flex;align-items:center;gap:5px;text-decoration:none;font-size:12px;font-weight:700;
+  border:1.5px solid var(--line);border-radius:999px;padding:5px 11px;color:var(--ink);background:var(--card)}
+a.lnk.map{border-color:#CFE3D6;background:#F1F8F3;color:var(--matcha)}
+a.lnk.tik{border-color:#E0D3E6;background:#F6F1F8;color:var(--murasaki)}
+.stop.hasx{cursor:pointer}
+.xhint{display:inline-block;margin-left:6px;color:var(--kin);font-size:13px;font-weight:900}
+.s-x{display:none;margin-top:7px;background:#FBF4E4;border:1.5px solid #EBDDBB;border-radius:12px;padding:10px 12px;font-size:13px;line-height:1.55;color:#6B5A33}
+.stop.open .s-x{display:block}
+.stop.open .xhint{color:var(--shu)}
+.zbox{margin-top:9px;background:#F1EDE4;border:1.5px solid var(--line);border-radius:12px;padding:9px 12px;font-size:12.5px;line-height:1.55;color:#5C5348}
+.wic{font-size:13px;margin-left:3px}
+.fstat{margin-top:8px;background:#EFF3F8;border:1.5px solid #D6DEE8;border-radius:12px;padding:9px 12px;font-size:12.5px;line-height:1.55;color:#3D4C5E;display:none}
+.leg{margin:-3px 0 3px;font-size:11.5px;font-weight:700;color:var(--sub);opacity:.9}
+.stop.un::before{border-color:var(--kin);background:#FBF4E4}
+.stop.un .s-time{color:var(--kin)}
+.ndel{border:0;background:none;color:var(--shu);font-weight:900;font-size:14px;margin-left:8px;font-family:inherit;padding:0 4px}
+.addbtn{width:100%;border:1.5px dashed var(--kin);background:#FBF4E4;color:#8A6E33;font-family:inherit;font-weight:900;font-size:13px;border-radius:12px;padding:11px;margin-top:6px}
+.noteform{display:none;gap:6px;margin-top:8px;flex-wrap:wrap}
+.noteform.on{display:flex}
+.noteform input[type=time]{border:1.5px solid var(--line);border-radius:10px;padding:9px;font-family:inherit;font-weight:700;font-size:14px;background:#fff}
+.noteform input[type=text]{flex:1;min-width:150px;border:1.5px solid var(--line);border-radius:10px;padding:9px 12px;font-family:inherit;font-size:14px;background:#fff}
+.noteform button{border:0;background:var(--matcha);color:#fff;font-family:inherit;font-weight:900;border-radius:10px;padding:9px 16px;font-size:13px}
+.badge{display:inline-block;font-size:11px;font-weight:900;border-radius:6px;padding:2px 7px;margin-left:6px;vertical-align:2px}
+.badge.cash{background:#FDF1E3;color:#A56A1F}.badge.warn{background:#FBE9E8;color:var(--shu-d)}
+.badge.ok{background:#EAF4ED;color:var(--matcha)}
+.badge.opt{background:#EEE9F5;color:var(--murasaki)}
+.stop.opz::before{border-style:dashed;border-color:var(--murasaki)}
+.stop.opz .s-time{color:var(--murasaki)}
+
+/* ── codici ── */
+.cardbox{background:var(--card);border:1.5px solid var(--line);border-radius:16px;padding:14px 16px;margin-bottom:12px}
+.crow{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:9px 0;border-bottom:1px dashed var(--line)}
+.crow:last-child{border-bottom:0}
+.c-l{font-size:13px;color:var(--sub);font-weight:700}
+.c-v{font-size:15px;font-weight:700;letter-spacing:.03em}
+.copy{border:0;background:var(--washi);border:1.5px solid var(--line);border-radius:10px;
+  font-size:11px;font-weight:900;padding:6px 10px;color:var(--sub);font-family:inherit}
+.copy.did{border-color:var(--matcha);color:var(--matcha)}
+.bigbtn{display:block;text-align:center;text-decoration:none;font-weight:900;font-size:15px;
+  border-radius:14px;padding:14px;margin:10px 0;color:#fff}
+.bigbtn.p{background:var(--murasaki)} .bigbtn.r{background:var(--shu)} .bigbtn.o{background:var(--ink)}
+a.tel{color:var(--shu);text-decoration:none;font-weight:700}
+
+/* ── checklist ── */
+.prog{background:var(--card);border:1.5px solid var(--line);border-radius:16px;padding:14px 16px;margin-bottom:14px;
+  display:flex;align-items:center;gap:14px}
+.prog-n{font-size:26px;font-weight:900;color:var(--matcha)}
+.prog-bar{flex:1;height:8px;background:var(--line);border-radius:99px;overflow:hidden}
+.prog-fill{height:100%;background:var(--matcha);border-radius:99px;transition:width .3s}
+.ck{display:flex;gap:12px;align-items:flex-start;background:var(--card);border:1.5px solid var(--line);
+  border-radius:14px;padding:12px 14px;margin-bottom:8px}
+.ck input{appearance:none;width:24px;height:24px;flex:0 0 24px;border:2.5px solid var(--line);border-radius:8px;
+  background:#fff;position:relative;margin-top:1px}
+.ck input:checked{background:var(--matcha);border-color:var(--matcha)}
+.ck input:checked::after{content:"✓";position:absolute;inset:0;display:grid;place-items:center;color:#fff;font-weight:900;font-size:15px}
+.ck.done .ck-t{text-decoration:line-through;color:var(--sub)}
+.ck-t{font-size:14px;font-weight:700;line-height:1.4}
+.ck-s{font-size:12px;color:var(--sub);line-height:1.4}
+.storage-note{font-size:11px;color:var(--sub);text-align:center;margin-top:10px}
+
+/* ── celiachia ── */
+.phrase{background:var(--card);border:1.5px solid var(--line);border-radius:16px;padding:16px;margin-bottom:10px}
+.ph-jp{font-size:20px;font-weight:700;line-height:1.6}
+.ph-it{font-size:12px;color:var(--sub);margin-top:6px}
+.gf-cols{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.gf-no,.gf-ok{border-radius:16px;padding:14px}
+.gf-no{background:#FBE9E8;border:1.5px solid #EFC9C7}
+.gf-ok{background:#EAF4ED;border:1.5px solid #C8DFD0}
+.gf-h{font-weight:900;font-size:14px;margin-bottom:8px}
+.gf-no .gf-h{color:var(--shu-d)} .gf-ok .gf-h{color:var(--matcha)}
+.gf-i{font-size:13px;line-height:1.7}
+.show-btn{width:100%;border:0;background:var(--shu);color:#fff;font-family:inherit;font-weight:900;
+  font-size:15px;border-radius:14px;padding:14px;margin-top:4px}
+#bigphrase{position:fixed;inset:0;background:var(--washi);z-index:50;display:none;
+  padding:28px 22px;flex-direction:column;justify-content:center;gap:18px}
+#bigphrase.on{display:flex}
+#bigphrase .bp-t{font-size:30px;font-weight:900;line-height:1.55}
+#bigphrase .bp-close{position:absolute;top:18px;right:18px;border:0;background:var(--ink);color:#fff;
+  border-radius:99px;width:40px;height:40px;font-size:18px;font-family:inherit}
+
+/* ── bottom nav ── */
+nav{position:fixed;bottom:0;left:0;right:0;z-index:30;background:rgba(255,255,255,.96);backdrop-filter:blur(8px);
+  border-top:1px solid var(--line);display:flex;padding-bottom:env(safe-area-inset-bottom)}
+nav button{flex:1;border:0;background:none;font-family:inherit;padding:10px 0 8px;font-size:11px;
+  font-weight:900;color:var(--sub);display:flex;flex-direction:column;gap:3px;align-items:center}
+nav button .ico{font-size:20px;line-height:1}
+nav button.on{color:var(--shu)}
+@media(prefers-reduced-motion:no-preference){
+  .tl::before{animation:draw .7s ease-out}
+  @keyframes draw{from{transform:scaleY(0);transform-origin:top}to{transform:scaleY(1)}}
+}
+
+.qrgrid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:6px}
+.qrth{background:#fff;border:1.5px solid var(--line);border-radius:14px;padding:10px 6px;text-align:center;font-family:inherit}
+.qrth img{width:100%;image-rendering:pixelated;border-radius:6px}
+.qrth .ql{font-size:11.5px;font-weight:900;margin-top:6px;color:var(--ink)}
+.qrth .qs{font-size:10px;color:var(--sub);font-weight:700}
+#qrbig{position:fixed;inset:0;background:#fff;z-index:60;display:none;flex-direction:column;align-items:center;justify-content:center;gap:14px;padding:24px}
+#qrbig.on{display:flex}
+#qrbig img{width:min(86vw,420px);image-rendering:pixelated}
+#qrbig .qbl{font-size:17px;font-weight:900}
+#qrbig .qbs{font-size:12px;color:var(--sub);text-align:center}
+#qrbig .qbx{position:absolute;top:16px;right:16px;border:0;background:var(--ink);color:#fff;border-radius:99px;width:42px;height:42px;font-size:18px;font-family:inherit}
+
+</style>
+</head>
+<body>
+
+<header>
+  <div class="h-row">
+    <div class="h-title"><span class="jp">日本</span> 2026 · Bonifati</div>
+    <div class="h-day" id="hday"></div>
+  </div>
+</header>
+
+<main>
+  <!-- ITINERARIO -->
+  <section class="tab on" id="tab-it">
+    <div class="chips" id="chips"></div>
+    <div id="dayview"></div>
+  </section>
+
+  <!-- CODICI -->
+  <section class="tab" id="tab-cod">
+    <h2><span class="bar"></span>Biglietti da mostrare</h2>
+    <a class="bigbtn p" href="https://linkt.to/ysQFzJFJ" target="_blank">🎫 QR Treno Kyoto→Nara (21/8, h 8:55)</a>
+    <a class="bigbtn p" href="https://www.ticket.kintetsu.co.jp/vs/en/" target="_blank">🚆 E-ticket Aoniyoshi (Review/change → data + numero + email)</a>
+    <a class="bigbtn o" href="https://drive.google.com/drive/folders/1s6yb285tkNQUcO7vngh7EB0-Og14o8Kh" target="_blank">📁 Cartella Drive del viaggio</a>
+
+    <h2><span class="bar"></span>QR pronti da mostrare</h2>
+    <div class="c-l" style="margin:-4px 0 8px">Boarding pass QR114 · Roma→Doha · 10/8 imbarco 21:55</div>
+    <div class="qrgrid">
+      <button class="qrth" onclick="showQR('q-bfil','Filippo — Boarding QR114','10/8 imbarco 21:55 · posto 5K · T3 Fiumicino')"><img id="q-bfil" src="data:image/png;base64,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"><div class="ql">Filippo</div><div class="qs">5K</div></button>
+      <button class="qrth" onclick="showQR('q-bflo','Floriana — Boarding QR114','10/8 imbarco 21:55 · posto 5F · T3 Fiumicino')"><img id="q-bflo" src="data:image/png;base64,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"><div class="ql">Floriana</div><div class="qs">5F</div></button>
+      <button class="qrth" onclick="showQR('q-bleo','Leonardo — Boarding QR114','10/8 imbarco 21:55 · posto 5E · T3 Fiumicino')"><img id="q-bleo" src="data:image/png;base64,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"><div class="ql">Leonardo</div><div class="qs">5E</div></button>
+    </div>
+    <div class="c-l" style="margin:-4px 0 8px">Visit Japan Web · immigrazione (tocca per ingrandire)</div>
+    <div class="qrgrid">
+      <button class="qrth" onclick="showQR('q-fil','Filippo — Visit Japan Web','Immigrazione Haneda: mostrare al gate QR')"><img id="q-fil" src="data:image/png;base64,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"><div class="ql">Filippo</div><div class="qs">VJW</div></button>
+      <button class="qrth" onclick="showQR('q-flo','Floriana — Visit Japan Web','Immigrazione Haneda: mostrare al gate QR')"><img id="q-flo" src="data:image/png;base64,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"><div class="ql">Floriana</div><div class="qs">VJW</div></button>
+      <button class="qrth" onclick="showQR('q-leo','Leonardo — Visit Japan Web','Immigrazione Haneda: mostrare al gate QR')"><img id="q-leo" src="data:image/png;base64,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"><div class="ql">Leonardo</div><div class="qs">VJW</div></button>
+    </div>
+    <div class="c-l" style="margin:2px 0 8px">21st Century Museum Kanazawa · 16/8 ore 15:00 (ID 160760YV8803)</div>
+    <div class="qrgrid">
+      <button class="qrth" onclick="showQR('q-m1','21st Century · Adulto 1','16/8 h15:00 · Collection Exhibition')"><img id="q-m1" src="data:image/png;base64,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"><div class="ql">Adulto 1</div><div class="qs">一般</div></button>
+      <button class="qrth" onclick="showQR('q-m2','21st Century · Adulto 2','16/8 h15:00 · Collection Exhibition')"><img id="q-m2" src="data:image/png;base64,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"><div class="ql">Adulto 2</div><div class="qs">一般</div></button>
+      <button class="qrth" onclick="showQR('q-mleo','21st Century · Leonardo','16/8 h15:00 · studenti')"><img id="q-mleo" src="data:image/png;base64,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"><div class="ql">Leonardo</div><div class="qs">小中高生</div></button>
+    </div>
+    <div class="c-l" style="margin:2px 0 8px">Chichu Art Museum · 22/8 ore 14:30 (ritardo max 30 min!)</div>
+    <div class="qrgrid">
+      <button class="qrth" onclick="showQR('q-ca','Chichu · Adulto 1','22/8 h14:30 — al gate del museo · no rientro')"><img id="q-ca" src="data:image/png;base64,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"><div class="ql">Adulto 1</div><div class="qs">¥2700</div></button>
+      <button class="qrth" onclick="showQR('q-cb','Chichu · Adulto 2','22/8 h14:30 — al gate del museo · no rientro')"><img id="q-cb" src="data:image/png;base64,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"><div class="ql">Adulto 2</div><div class="qs">¥2700</div></button>
+      <button class="qrth" onclick="showQR('q-cc','Chichu · Leonardo','22/8 h14:30 — under 15 gratis')"><img id="q-cc" src="data:image/png;base64,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"><div class="ql">Leonardo</div><div class="qs">Gratis</div></button>
+    </div>
+    <p class="storage-note" style="margin:2px 0 14px">Copie di backup incorporate nell'app (funzionano offline). In caso di dubbi al gate: originali su Visit Japan Web / account Benesse Art Site.</p>
+
+    <h2><span class="bar"></span>Volo · Qatar Airways</h2>
+    <div class="cardbox" id="cod-volo"></div>
+
+    <h2 class="v"><span class="bar"></span>Treni</h2>
+    <div class="cardbox" id="cod-treni"></div>
+
+    <h2 class="k"><span class="bar"></span>Hotel</h2>
+    <div class="cardbox" id="cod-hotel"></div>
+
+    <h2 class="k"><span class="bar"></span>Documenti su Drive</h2>
+    <div class="cardbox">
+      <div class="crow"><span class="c-l">📋 Riepilogo prenotazioni v2</span><a class="tel" target="_blank" href="https://docs.google.com/document/d/1ZFCJ1E93Y94o4SqrhTyq4QJRFj6MzOnJecqHFK9HrGg/edit">Apri</a></div>
+      <div class="crow"><span class="c-l">🗾 Itinerario completo v2</span><a class="tel" target="_blank" href="https://docs.google.com/document/d/1zcisCKxa-b7UqD9stj0unqO0r_fn8atQ_kkSeHy84rY/edit">Apri</a></div>
+      <div class="crow"><span class="c-l">✅ To-do pre-partenza</span><a class="tel" target="_blank" href="https://docs.google.com/document/d/1iDMNfl6X8aHLzPdaw3oF_cF84nHR4E823AkylnprA6k/edit">Apri</a></div>
+      <div class="crow"><span class="c-l">✈️ Ricevute Qatar (1·Voli)</span><a class="tel" target="_blank" href="https://drive.google.com/drive/folders/1AEZ53aFTErGPua8SXaPOrVcoObKckZwy">Apri</a></div>
+      <div class="crow"><span class="c-l">🚆 Cartella Treni</span><a class="tel" target="_blank" href="https://drive.google.com/drive/folders/17GYUoWhqrZTzTXW3sm7Bx5S-eFXKrOZQ">Apri</a></div>
+      <div class="crow"><span class="c-l">🏨 Cartella Hotel</span><a class="tel" target="_blank" href="https://drive.google.com/drive/folders/18-9VnLD_miiU_rgBQsW5vmrAHzs-Lwf-">Apri</a></div>
+      <div class="crow"><span class="c-l">🍙 Cartella Celiachia</span><a class="tel" target="_blank" href="https://drive.google.com/drive/folders/1mX8ib83U5LKvJjdJtFW1XpStPWC_tT9A">Apri</a></div>
+    </div>
+
+    <h2 class="g"><span class="bar"></span>Telefoni utili</h2>
+    <div class="cardbox">
+      <div class="crow"><span class="c-l">Rurikoh (ryokan Kaga)</span><a class="tel" href="tel:+81761772323">+81 761-77-2323</a></div>
+      <div class="crow"><span class="c-l">Fuwari (Kanazawa)</span><a class="tel" href="tel:+81762073417">+81 76-207-3417</a></div>
+      <div class="crow"><span class="c-l">Peninsula concierge</span><a class="tel" href="tel:+81362702888">+81 3-6270-2888</a></div>
+      <div class="crow"><span class="c-l">Emergenze Giappone</span><a class="tel" href="tel:110">110 · <span style="color:var(--shu)">119</span></a></div>
+    </div>
+  </section>
+
+  <!-- CHECKLIST -->
+  <section class="tab" id="tab-ck">
+    <div class="prog"><div class="prog-n" id="prog-n">0/0</div><div class="prog-bar"><div class="prog-fill" id="prog-f" style="width:0%"></div></div></div>
+    <div id="cklist"></div>
+    <p class="storage-note" id="stnote">Le spunte si salvano da sole su questo dispositivo.</p>
+  </section>
+
+  <!-- CELIACHIA -->
+  <section class="tab" id="tab-gf">
+    <button class="show-btn" onclick="showPhrase(0)">🍙 MOSTRA AL RISTORANTE — 見せる</button>
+    <h2 class="g"><span class="bar"></span>Frasi pronte (tocca per ingrandire)</h2>
+    <div id="phrases"></div>
+    <h2><span class="bar"></span>Promemoria lampo</h2>
+    <div class="gf-cols">
+      <div class="gf-no"><div class="gf-h">✕ NO</div><div class="gf-i">Shoyu normale<br>Ramen · udon · soba<br>Pane · pasta · panko<br>Tempura · fritti (衣)<br>Fu · miso d'orzo<br>Roux di curry</div></div>
+      <div class="gf-ok"><div class="gf-h">○ SÌ</div><div class="gf-i">Riso · onigiri semplice<br>Sashimi · pesce al sale<br>Carne solo sale<br>Uova · verdure · frutta<br>Sale · wasabi · limone<br>Miso di riso · mirin</div></div>
+    </div>
+    <p class="storage-note">Card completa JP/EN stampata: 2 copie negli zaini · PDF nella cartella Drive "6 · Celiachia".<br>Salvavita universale: 白ごはんとお刺身だけで大丈夫です (solo riso bianco e sashimi va benissimo).</p>
+  </section>
+</main>
+
+<div id="bigphrase">
+  <button class="bp-close" onclick="document.getElementById('bigphrase').classList.remove('on')">✕</button>
+  <div class="bp-t" id="bp-t"></div>
+  <div class="ph-it" id="bp-i" style="font-size:15px"></div>
+</div>
+
+<div id="qrbig">
+  <button class="qbx" onclick="document.getElementById('qrbig').classList.remove('on')">✕</button>
+  <img id="qb-img" src="" alt="QR">
+  <div class="qbl" id="qb-l"></div>
+  <div class="qbs" id="qb-s"></div>
+</div>
+
+<nav>
+  <button class="on" data-t="tab-it"><span class="ico">🗾</span>Itinerario</button>
+  <button data-t="tab-cod"><span class="ico">🎫</span>Codici</button>
+  <button data-t="tab-ck"><span class="ico">✅</span>Checklist</button>
+  <button data-t="tab-gf"><span class="ico">🍙</span>Celiachia</button>
+</nav>
+
+<script>
+/* ───────── DATI ───────── */
+const gm=q=>"https://www.google.com/maps/search/?api=1&query="+encodeURIComponent(q);
+
+const DAYS=[
+{d:"2026-08-10",t:"Partenza",s:"Roma → Doha",st:[
+ {h:"19:30",n:"Fiumicino T3",o:"Check-in fatto ✓ · Business Lite, 40kg a testa",m:"Aeroporto Fiumicino Terminal 3",c:"tr"},
+ {h:"22:40",n:"QR114 → Doha",o:"Arrivo DOH 05:05 · Meet & Assist Al Maha allo scalo",c:"tr"}]},
+{d:"2026-08-11",t:"In volo",s:"Fusi: Doha = Roma +1h · Giappone = Roma +7h",st:[
+ {h:"07:30",n:"QR812 → Haneda ⚠",o:"Ora di Doha (le 6:30 in Italia) · ANTICIPATO dalle 07:50 — imbarco ~06:45, scalo 2h25",c:"tr",b:"warn"},
+ {h:"23:59",n:"In volo verso Tokyo ✈",o:"Atterraggio a mezzanotte passata, ora giapponese → si continua nel giorno 12"}]},
+{d:"2026-08-12",t:"Ginza + Aoyama",s:"Notte d'arrivo + mattina libera — nulla prima delle 10:30",st:[
+ {h:"00:05",n:"Arrivo Haneda 🛬",o:"Ora di Tokyo (le 17:05 dell'11 in Italia) · Visit Japan Web pronto · attivare eSIM",c:"tr"},
+ {h:"01:20",n:"Taxi fisso → Peninsula",o:"Ref. 17695SG597187 · in camera ~2:00",c:"tr"},
+ {h:"10:35",n:"Suica fisica per Leo",o:"Macchinette JR a Yurakucho (5 min a piedi) + ricarica",m:"Yurakucho Station",c:"tr"},
+ {h:"11:00",n:"Creative Museum Tokyo",o:"Mostra Hosoda",m:"Creative Museum Tokyo"},
+ {h:"12:45",n:"Pranzo Kyobashi/Ginza",c:"eat"},
+ {h:"13:50",n:"Itoya · cartoleria (12 piani)",o:"G.Itoya Ginza, 5 min a piedi — visita lampo prima del taxi",m:"Itoya Ginza"},
+ {h:"14:10",n:"Kyukyodo Ginza (dal 1663)",o:"Carta washi, incensi, pennelli — 3 min da Itoya, solo se avete margine",m:"Kyukyodo Ginza",c:"opz",b:"opt"},
+ {h:"14:30",n:"Nezu Museum",o:"Museo + giardino in ombra · taxi 15 min",m:"Nezu Museum Tokyo"},
+ {h:"17:00",n:"Riposo e piscina in hotel"},
+ {h:"20:30",n:"Cena omakase · Ginza Tsukasa",o:"Confermata via concierge · 8 min a piedi",m:"Ginza Tsukasa",c:"eat",b:"ok"}]},
+{d:"2026-08-13",t:"Asakusa + barca + Akiba",s:"Partenza presto per battere caldo e folla",st:[
+ {h:"08:00",n:"Senso-ji e Nakamise",o:"Eventuale hanko: negozi in zona, ordina ora → ritiri prima della barca",m:"Sensoji Temple"},
+ {h:"09:15",n:"Kappabashi",o:"Via delle stoviglie",m:"Kappabashi Street"},
+ {h:"10:30",n:"Kakimori · quaderno su misura ✒️",o:"Kuramae, 8 min: Leo si compone il taccuino del viaggio",m:"Kakimori Kuramae"},
+ {h:"11:15",n:"Pranzo ad Asakusa",c:"eat"},
+ {h:"12:45",n:"Barca Hotaluna → Hinode",o:"Imbarco Azumabashi · arrivo ~13:40",m:"Azumabashi Pier",c:"tr"},
+ {h:"14:00",n:"Taxi hotel · riposo"},
+ {h:"14:15",n:"Odaiba: Doraemon Future Dept. Store 🤖",o:"Alternativa al riposo: da Hinode 2 fermate di Yurikamome → DiverCity (+ Gundam gigante e Miraikan accanto)",m:"Doraemon Future Department Store DiverCity",c:"opz",b:"opt"},
+ {h:"15:30",n:"Dawn Avatar Robot Cafe",o:"Nihonbashi: camerieri-robot OriHime pilotati a distanza da persone con disabilità — prenotare online",m:"Dawn Avatar Robot Cafe Tokyo",c:"opz",b:"opt"},
+ {h:"16:30",n:"Akihabara",o:"Electric Town, retrogame, gachapon",m:"Akihabara"},
+ {h:"19:00",n:"Sony Park Ginza",o:"Riaperto nel 2025: installazioni interattive, gratuito, 5 min dall'hotel — perfetto con pioggia",m:"Sony Park Ginza",c:"opz",b:"opt"},
+ {h:"19:30",n:"Cena verso Ginza",c:"eat"}]},
+{d:"2026-08-14",t:"teamLab + Shibuya + Centifolia",s:"Giornata lunga: pausa vera nel pomeriggio",st:[
+ {h:"09:00",n:"teamLab Borderless",o:"Primo slot · Azabudai Hills",m:"teamLab Borderless Azabudai"},
+ {h:"12:15",n:"Pranzo T-Market Toranomon",m:"Toranomon Hills T-Market",c:"eat"},
+ {h:"14:00",n:"Pausa in hotel (2h30)"},
+ {h:"17:00",n:"Nintendo Tokyo + Pokémon Center",m:"Nintendo TOKYO Shibuya PARCO"},
+ {h:"18:15",n:"Shibuya Sky al tramonto",o:"Poi incrocio visto dal basso",m:"Shibuya Sky"},
+ {h:"19:45",n:"Cena a Shibuya",c:"eat"},
+ {h:"22:00",n:"Leo in camera (hotel avvisato)",b:"ok"},
+ {h:"22:30",n:"Centifolia ×2 🍸",o:"Azabu-Jūban · PUNTUALI: posto rilasciato dopo 30 min",m:"Bar Centifolia Azabu Juban",b:"warn"}]},
+{d:"2026-08-15",t:"Guida + capibara",s:"Giornata con la guida · sera Shinjuku",st:[
+ {h:"09:00",n:"Meiji Jingū",m:"Meiji Jingu"},
+ {h:"10:30",n:"Takeshita-dōri · Harajuku",m:"Takeshita Street"},
+ {h:"11:30",n:"Omotesandō + vintage Amore",m:"Amore Vintage Omotesando"},
+ {h:"13:00",n:"Pranzo Soho House Tokyo ✓",o:"Confermato · Leo ok in house fino alle 18 (piscina bimbi solo fino alle 12: niente tuffo)",m:"Soho House Tokyo Aoyama",c:"eat",b:"ok"},
+ {h:"15:45",n:"Shimokitazawa · thrift",o:"Chicago, Flamingo, NY Joe",m:"Shimokitazawa"},
+ {h:"17:30",n:"Capyneko Cafe · capibara 🦫",o:"Kichijōji, Inokashira line diretta da Shimokita",m:"Capyneko Cafe Kichijoji"},
+ {h:"18:30",n:"Rientro · cena rilassata zona Ginza/hotel",o:"Dopo i capibara, serata tranquilla",c:"eat"}]},
+{d:"2026-08-16",t:"Tokyo → Kanazawa",s:"⏰ Ore 9:00 in punto: slot piscina Erlich (dal treno!)",st:[
+ {h:"08:00",n:"Bagagli grandi a Yamato → Kyoto",o:"Consegna al Capella il 18",b:"warn"},
+ {h:"08:25",n:"Taxi Tokyo Station",c:"tr"},
+ {h:"08:35",n:"Ritiro biglietti Eki-Net",o:"Macchinette JR EAST · stessa carta di credito + E41447",c:"tr",b:"warn"},
+ {h:"09:20",n:"Kagayaki → Kanazawa 11:48",o:"⏰ Alle 9:00: prenota slot piscina (15:00-15:30)",c:"tr"},
+ {h:"12:15",n:"Pranzo Omicho Market",o:"Sashimi + riso = pranzo perfetto per Leo",m:"Omicho Market",c:"eat"},
+ {h:"13:30",n:"Nagamachi + Nomura-ke",m:"Nomura-ke Samurai House"},
+ {h:"14:45",n:"21st Century Museum + piscina",o:"Mail di chiamata = 20 min per Galleria 6",m:"21st Century Museum Kanazawa"},
+ {h:"16:10",n:"Kenroku-en",o:"Ingresso Katsurazaka",m:"Kenrokuen Garden"},
+ {h:"17:10",n:"Higashi Chaya",o:"PRIMA Imai Kinpaku, poi gelato Hakuichi IN COPPETTA",m:"Higashi Chaya District"},
+ {h:"20:45",n:"Cena Fuwari",o:"Owari-chō, 8 min a piedi · poi Katamachi",m:"Fuwari Kanazawa Owaricho",c:"eat"},
+ {h:"21:45",n:"In stazione domattina: biglietti del 17 + posti del 18",b:"warn"}]},
+{d:"2026-08-17",t:"Kanazawa → Kaga · ryokan 🏯",s:"Zaini mai in spalla: piano navetta",st:[
+ {h:"09:00",n:"Kanazawa Castle + Gyokusen'inmaru",o:"Zaini restano al Sanraku",m:"Kanazawa Castle"},
+ {h:"10:45",n:"Ritiro zaini, check-out"},
+ {h:"11:30",n:"Tsurugi → Kagaonsen 11:55",c:"tr"},
+ {h:"12:00",n:"Navetta Rurikoh (o taxi 10 min)",o:"Deposito zaini al ryokan prima del check-in",c:"tr"},
+ {h:"12:45",n:"Pranzo a Yamanaka",o:"NO soba (quasi sempre col frumento)",m:"Yamanaka Onsen",c:"eat",b:"warn"},
+ {h:"13:45",n:"Gole di Kakusenkei",o:"Ponte Korogi + passerella sul fiume, tutta in ombra",m:"Kakusenkei Gorge"},
+ {h:"15:20",n:"Check-in Rurikoh · onsen",o:"Hoshi Wing · rotenburo in camera",m:"Rurikoh Yamashiro Onsen"},
+ {h:"18:30",n:"Cena kaiseki",o:"GF per Leo concordato col ryokan",c:"eat",b:"ok"},
+ {h:"21:00",n:"Show taiko Ikkō-ikki 🥁",b:"ok"},
+ {h:"21:45",n:"Bon-odori a Yamashiro 🏮",o:"Da verificare in reception: in Obon molte città onsen ballano in piazza soyu la sera — se c'è, è a 5 min a piedi in yukata",c:"opz",b:"opt"}]},
+{d:"2026-08-18",t:"Kaga → Kyoto",s:"Cambio a Tsuruga: binario di fronte, ~10 min",st:[
+ {h:"10:00",n:"Check-out (pagamento) · navetta stazione"},
+ {h:"10:40",n:"Tsurugi → Tsuruga → Thunderbird",o:"Posti riservati · arrivo Kyoto ~12:15",c:"tr"},
+ {h:"12:30",n:"Taxi Capella · deposito bagagli",o:"#560961377 · camera dalle 15",m:"Capella Kyoto"},
+ {h:"13:00",n:"Pranzo Nishiki Market",m:"Nishiki Market",c:"eat"},
+ {h:"15:00",n:"Ninenzaka · Sannenzaka",m:"Ninenzaka Kyoto"},
+ {h:"16:00",n:"Kiyomizu-dera",o:"Zona hanko same-day sulla salita",m:"Kiyomizu-dera"},
+ {h:"17:30",n:"Yasaka Shrine e Gion",m:"Yasaka Shrine"}]},
+{d:"2026-08-19",t:"Arashiyama con guida",s:"Cerimonia del tè nel tardo pomeriggio",st:[
+ {h:"09:00",n:"Otagi Nenbutsu-ji",o:"I 1200 rakan scolpiti",m:"Otagi Nenbutsuji"},
+ {h:"10:00",n:"Adashino → Saga-Toriimoto → bambù → Nonomiya",m:"Adashino Nenbutsuji"},
+ {h:"12:00",n:"Kimono Forest → ponte Togetsukyo",m:"Kimono Forest Arashiyama"},
+ {h:"12:30",n:"Pranzo Arashiyama (GF con la guida)",c:"eat"},
+ {h:"13:30",n:"Opzionale: Monkey Park",o:"20 min di salita — decidere col termometro",m:"Iwatayama Monkey Park"},
+ {h:"16:00",n:"Cerimonia del tè casual",o:"Camellia/Maikoya · 45 min",m:"Camellia Tea Ceremony Kyoto"}]},
+{d:"2026-08-20",t:"Kyoto libera",s:"Alba ai torii, sera tranquilla (domani sveglia presto)",st:[
+ {h:"07:30",n:"Fushimi Inari",o:"Keihan da Gion-Shijō · fino allo Yotsutsuji",m:"Fushimi Inari Taisha"},
+ {h:"09:30",n:"Sanjūsangen-dō (o Railway Museum)",o:"Leo sceglie: 1001 Kannon o treni",m:"Sanjusangendo"},
+ {h:"11:00",n:"Rientro · pranzo · pausa lunga",c:"eat"},
+ {h:"16:00",n:"Teramachi/Shinkyogoku: vintage e acquisti",m:"Teramachi Street Kyoto"},
+ {h:"16:40",n:"Kyukyodo storico · Teramachi",o:"La casa madre del 1663: carta, pennelli, incensi — dentro la passeggiata",m:"Kyukyodo Kyoto Teramachi",c:"opz",b:"opt"},
+ {h:"19:30",n:"Cena Pontocho / Kamogawa",m:"Pontocho Alley",c:"eat"}]},
+{d:"2026-08-21",t:"NARA · Aoniyoshi day 🦌",s:"Contanti per Sarasojyu! · e-ticket dal sito, non screenshot",st:[
+ {h:"08:25",n:"In stazione (Kyoto Kintetsu)",c:"tr"},
+ {h:"08:55",n:"Treno n.807 → Nara 9:30",o:"QR digitale ai tornelli (bottone viola in Codici)",c:"tr",b:"ok"},
+ {h:"09:35",n:"Parco e cervi → Tōdai-ji",o:"Daibutsu fino alle 11:05",m:"Todaiji Temple"},
+ {h:"11:30",n:"PRANZO SARASOJYU",o:"Tavolo riservato ×3 · SOLO CONTANTI",m:"comeco cafe Sarasojyu Nara",c:"eat",b:"cash"},
+ {h:"13:15",n:"Nakatanidou: mochi battuto",m:"Nakatanidou Nara",c:"eat"},
+ {h:"14:00",n:"Kasuga Taisha (o Kōfuku-ji)",o:"Sentieri delle lanterne in ombra",m:"Kasuga Taisha"},
+ {h:"15:40",n:"Al binario",c:"tr"},
+ {h:"15:55",n:"AONIYOSHI n.9506 → Kyoto 16:31 💜",o:"Carrozza 4 · 6C-6D + 7C-7D · base fare con Suica",c:"tr",b:"ok"}]},
+{d:"2026-08-22",t:"Kyoto → Naoshima 🎨",s:"Chichu alle 14:30: biglietto nell'account Benesse Art Site",st:[
+ {h:"08:30",n:"Check-out + Yamato → KIX",o:"Consegna bagagli il 24 in aeroporto",b:"warn"},
+ {h:"09:00",n:"Shinkansen → Okayama",o:"Poi locale per Uno",c:"tr"},
+ {h:"11:00",n:"Traghetto Uno → Miyanoura ~12:30",m:"Uno Port",c:"tr"},
+ {h:"13:00",n:"Navetta Benesse · deposito · pranzo leggero",c:"eat"},
+ {h:"14:30",n:"CHICHU ART MUSEUM",o:"Monet, Turrell, De Maria — prenotato",m:"Chichu Art Museum",b:"ok"},
+ {h:"16:30",n:"Check-in Beach Suite · Pumpkin al tramonto",m:"Yellow Pumpkin Naoshima"},
+ {h:"18:30",n:"Cena kaiseki Benesse",o:"Confermata, GF ok (cucina condivisa accettata)",c:"eat",b:"ok"},
+ {h:"21:00",n:"Benesse House Museum · accesso serale ospiti"}]},
+{d:"2026-08-23",t:"Naoshima → Osaka · sumo 🥋",s:"Traghetto delle 12 vincolante per Hirakuza",st:[
+ {h:"09:00",n:"Honmura: Art House Project + ANDO Museum",m:"Art House Project Naoshima"},
+ {h:"12:00",n:"Traghetto → Uno → Okayama",c:"tr"},
+ {h:"13:30",n:"Shinkansen → Shin-Osaka",o:"Occhio ai Kodama serie 500 🚀",c:"tr"},
+ {h:"16:00",n:"Check-in Centara Grand Namba",o:"39582SG596190",m:"Centara Grand Hotel Osaka"},
+ {h:"17:30",n:"Ingresso HIRAKUZA (Namba Parks 8F)",o:"Show 18:00-19:00 · stesso complesso dell'hotel",m:"Hirakuza Osaka Namba Parks",b:"warn"},
+ {h:"19:30",n:"Dōtonbori a piedi",m:"Dotonbori",c:"eat"}]},
+{d:"2026-08-24",t:"USJ e partenza ✈️",s:"Borsoni nei coin locker a Universal City",st:[
+ {h:"08:00",n:"Namba → Nishikujo → Universal City",c:"tr"},
+ {h:"08:30",n:"USJ: Wizarding World per primo 🪄",m:"Universal Studios Japan"},
+ {h:"14:30",n:"Universal City → Nishikujo → Kansai Airport Rapid",o:"KIX ~16:00",c:"tr"},
+ {h:"16:00",n:"Ritiro bagagli Yamato · check-in",b:"warn"},
+ {h:"18:55",n:"QR803 → Doha → Roma 07:25 del 25",o:"Orari locali: partenza 18:55 ora giapponese · Doha 23:30–02:25 · Roma 07:25 — il fuso stavolta rema a favore",c:"tr"}]}
+];
+
+const CODES={
+ volo:[["PNR Qatar","8VTMGL"],["Andata","QR114 + QR812 · 10/8 22:40"],["⚠ QR812 Doha","parte 07:30 (non 07:50)"],["Ritorno","QR803 + QR115 · 24/8 18:55"]],
+ treni:[["Eki-Net 16/8 (ritiro fisico!)","E41447"],["Membership JR-East","411437070"],["Kyoto→Nara 21/8 (QR)","ARS_KINTETSU_TK-20260809-53QA"],["Aoniyoshi 6C·6D","A30110"],["Aoniyoshi 7C·7D","A12048"],["Certification","59148"]],
+ hotel:[["Peninsula Tokyo 11–16","17695SG597187"],["Sanraku Kanazawa 16–17","conferma via mail 3/8"],["Rurikoh Kaga 17–18","in conferma finale"],["Capella Kyoto 18–22","560961377"],["Benesse Naoshima 22–23","202608020006936.01"],["Centara Osaka 23–24","39582SG596190"]]};
+
+const CHECKS=[
+ {g:"Oggi · prenotazioni",i:[
+  ["Mail conferma Rurikoh inviata (via Floriana)","camera A o B + navetta 12:00 + Amex"],
+  ["Shibuya Sky 14/8 ~18:00","la più a rischio: subito"],
+  ["teamLab Borderless 14/8 primo slot",""],
+  ["Hotaluna 13/8 ore 12:45",""],
+  ["Fuwari 16/8 ore 20:45 ×3","AutoReserve o telefono · nota celiachia"],
+  ["Hirakuza 23/8 show 18:00","+ mail per bento GF"],
+  ["Capyneko Cafe 15/8 ~17:30",""],
+  ["Cerimonia del tè 19/8 ~16:00","chiedere wagashi GF"],
+  ["Nezu Museum 12/8 14:30 + slot Creative Museum",""],
+  ["smartEX: account + treni 22/8 e 23/8",""],
+  ["Biglietti USJ 24/8","valutare Express Pass Harry Potter"],
+  ["Soho House 15/8 (all'ok di Floriana)","tavolo dall'app + nota celiachia"]]},
+ {g:"Domani prima di partire",i:[
+  ["3 eSIM installate (spente!) sotto wifi",""],
+  ["Suica in Wallet ×2 adulti + ricarica",""],
+  ["Visit Japan Web ×3",""],
+  ["Carta di credito Eki-Net nel portafoglio","serve fisicamente il 16"],
+  ["Snack GF (barrette, cracker di riso) + card stampata ×2",""],
+  ["Carte d'imbarco nel Wallet e su Drive",""]]},
+ {g:"In Giappone",i:[
+  ["12/8 h10:35 · Suica fisica per Leo a Yurakucho",""],
+  ["16/8 h9:00 ⏰ · slot piscina Erlich dal treno","sveglia sul telefono!"],
+  ["16/8 h8:35 · ritiro biglietti Tokyo Station","carta + E41447"],
+  ["16/8 sera · biglietti 17 + posti 18 in stazione",""],
+  ["16/8 h8:00 · Yamato: bagagli → Kyoto",""],
+  ["22/8 h8:30 · Yamato: bagagli → KIX",""]]}];
+
+const PHRASES=[
+ ["息子はセリアック病です。小麦・大麦・ライ麦は、少量でも食べられません。","Mio figlio è celiaco: niente grano, orzo o segale, nemmeno in minima quantità."],
+ ["調理器具や揚げ油は、他の料理と共用しないでください。","Per favore non condividete utensili e olio di frittura con altri piatti."],
+ ["白ごはんと、お刺身か塩だけで焼いたお肉・お魚だけで大丈夫です。","Vanno benissimo solo riso bianco e sashimi, o carne/pesce solo sale."],
+ ["醤油は抜きでお願いします。塩だけで大丈夫です。","Senza salsa di soia, per favore: solo sale va benissimo."],
+ ["グルテンフリーのメニューはありますか？","Avete un menù gluten free?"]];
+
+const EXTRAS={
+"QR114 → Doha":"Terminal 3 · Business Lite: lounge Al Mourjan NON inclusa · comprate acqua dopo i controlli. A Doha: Meet & Assist Al Maha vi aspetta allo sbarco.",
+"QR812 → Haneda ⚠":"Imbarco ~06:45 · scalo corto (2h25): niente giri lunghi in duty free. Sul volo: pasti GF di Leo registrati — verificate col personale.",
+"Suica fisica per Leo":"Macchinette JR nere multifunzione lato uscita Ginza · ¥2.000 (¥500 deposito) · a 12 anni tariffa adulti = niente sportello. Se esaurite: Tokyo Station lato Marunouchi, 3 min di treno.",
+"Creative Museum Tokyo":"Zona Kyobashi · piano B pioggia: Artizon Museum a 3 min. Caffè al piano terra per la pausa.",
+"Nezu Museum":"Biglietto orario online · il caffè con vetrata sul giardino è la pausa perfetta · giardino bello anche sotto pioggia leggera (ombrelli in prestito all'ingresso).",
+"Cena omakase · Ginza Tsukasa":"Smart casual · omakase ~2h · cucina avvisata per Leo: niente glutine E niente salse di soia (non gli piacciono) — sale, wasabi e limone vanno benissimo.",
+"Senso-ji e Nakamise":"Nakamise è una galleria COPERTA: ottima anche con pioggia, e prima delle 9 è semivuota · negozi di hanko su Denboin-dori: ordinate ora → ritiro prima della barca.",
+"Barca Hotaluna → Hinode":"Cabina interna: si naviga anche con pioggia · biglietteria allo scalo Azumabashi se online era esaurito · bagno a bordo.",
+"Akihabara":"Quasi tutto al coperto: perfetto col temporale · Yodobashi = 9 piani · retrogame: Super Potato e Traders.",
+"teamLab Borderless":"Arrivare 10 min prima dello slot · i QR d'ingresso compaiono nel link biglietti solo 24h prima (quindi dal 13 sera) · in alcune sale si va scalzi · pavimenti a specchio: no gonne corte · armadietti gratuiti.",
+"Shibuya Sky al tramonto":"⚠ Meteo: con temporale chiudono il TETTO (resta il 46° piano vetrato) · biglietti datati non rimborsabili · piano B: sera del 15 arrivando da Kichijōji con la Inokashira (20 min diretti).",
+"Centifolia ×2 🍸":"2° piano, citofonare · table charge ¥1.000 + drink ~¥4.000 +10% · posto rilasciato dopo 30 min di ritardo: partite alle 22:10 spaccate.",
+"Pranzo Soho House Tokyo ✓":"Minami-Aoyama, ingresso al 13° · pranzo ai piani club 13-14 (scala a chiocciola), vista Tokyo Tower · il club bar/Music Room del 14° è la zona 18+ serale — a pranzo nessun problema per Leo · celiachia in nota: riconfermare al tavolo.",
+"Meiji Jingū":"Vialoni di ghiaia: scarpe chiuse · con pioggia leggera è magico e vuoto · ingresso lato Harajuku, torii gigante.",
+"Capyneko Cafe · capibara 🦫":"40 minuti · si sta scalzi: calze pulite! · niente flash · si prenota lo slot, arrivate 5 min prima.",
+"Kyukyodo Ginza (dal 1663)":"Tre secoli di carta e incenso: regali piccoli e leggeri (cartoline washi, bastoncini profumati) · 5 minuti bastano.",
+"Odaiba: Doraemon Future Dept. Store 🤖":"Yurikamome da Hinode (2 fermate, vista baia) → DiverCity 2F · unico store ufficiale Doraemon al mondo, angolo 'gadget segreti' interattivo · fuori il Gundam RX-0 gigante · a 10 min il Miraikan (androidi e AI) se il robot-appetito è serio.",
+"Dawn Avatar Robot Cafe":"I camerieri OriHime sono pilotati in remoto da persone con disabilità motorie da tutto il Giappone: si chiacchiera davvero (inglese ok) · prenotare online (avatarrobotcafe) · Nihonbashi, 10 min di taxi dall'hotel.",
+"Sony Park Ginza":"L'anti-negozio Sony riaperto nel 2025: piani di installazioni interattive a rotazione, ingresso libero · zero code, aria condizionata gloriosa · sopra la fermata Ginza della metro.",
+"Kyukyodo storico · Teramachi":"Il negozio originale (1663), più raccolto e atmosferico di quello di Ginza · incensi da tempio, carta per calligrafia · chiude alle 18.",
+"Itoya · cartoleria (12 piani)":"Visita lampo: piani 2-4 per penne e carta, K.Itoya sul retro per pennelli e sigilli · uscire entro le 14:15 per il taxi verso Nezu.",
+"Kakimori · quaderno su misura ✒️":"Si scelgono copertina, carta e rilegatura e lo montano in ~30-40 min: ordinate, andate a pranzo, ritirate · carte ok · souvenir-capolavoro per Leo.",
+"Bagagli grandi a Yamato → Kyoto":"Si consegnano al bell desk del Peninsula entro le 8:15 · etichette compilate la sera prima · tenete con voi il necessario per 2 notti (Kanazawa+Kaga).",
+"Ritiro biglietti Eki-Net":"Macchinette JR EAST (insegna rossa) nell'atrio · serve LA STESSA carta di credito dell'acquisto + codice E41447 · 5 minuti in tutto.",
+"Kagayaki → Kanazawa 11:48":"Binari 20-23 · prima di salire: ekiben e bento GF-friendly da Gransta (onigiri semplici per Leo) · ⏰ alle 9:00 in punto dal treno: slot piscina!",
+"Pranzo Omicho Market":"Ingresso Musashi · sashimi e riso ai banchi centrali = pranzo GF perfetto (per Leo: senza salse, solo sale/wasabi) · contanti utili.",
+"21st Century Museum + piscina":"La mail dello slot piscina dà ~20 min per presentarsi alla Galleria 6: restate in zona museo all'orario scelto.",
+"Higashi Chaya":"PRIMA Imai Kinpaku (chiude ~18): doratura e souvenir · poi gelato foglia d'oro da Hakuichi — per Leo IN COPPETTA, non nel cono.",
+"Cena Fuwari":"Izakaya moderna a Owari-chō, 8 min a piedi · celiachia annotata in prenotazione: riconfermate al tavolo mostrando la card.",
+"Tsurugi → Kagaonsen 11:55":"Carrozze libere 1-2, biglietto fatto ieri sera in stazione · 25 minuti di viaggio.",
+"Navetta Rurikoh (o taxi 10 min)":"Se la navetta è confermata vi aspetta al piazzale · altrimenti: fila taxi davanti alla stazione, dite \"Rurikoh, Yamashiro onsen\" (~¥1.800).",
+"Gole di Kakusenkei":"Percorso in ombra lungo il fiume · ponte Korogi → passerella → caffè Kakusenkei Kawadoko (tè sul fiume, stagionale) · il taxi di rientro lo chiama il caffè o si torna alla via principale.",
+"Check-in Rurikoh · onsen":"Yukata in camera: si tiene per cena e taiko · rotenburo privato in camera = zero pensieri tatuaggi/timidezze · onsen grande: lavarsi PRIMA di immergersi.",
+"Tsurugi → Tsuruga → Thunderbird":"A Tsuruga si scende e il Thunderbird è al binario DI FRONTE (~10 min, seguire i cartelli viola Kansai) · posti riservati fatti a Kanazawa.",
+"Pranzo Nishiki Market":"Si mangia FERMI accanto al banco (vietato camminare mangiando) · sashimi, uova dolci occhio (mirin ok, ma chiedete del soy), frutta.",
+"Kiyomizu-dera":"Salita di Sannenzaka: negozi di hanko same-day se ad Asakusa non aveste trovato · acqua della cascata Otowa: 3 getti, se ne beve UNO.",
+"Fushimi Inari":"Keihan da Gion-Shijō → Fushimi-Inari, 5 min a piedi · fino allo Yotsutsuji (~45 min salita) bastano e avanzano · distributori d'acqua lungo il percorso.",
+"Treno n.807 → Nara 9:30":"QR digitale ai tornelli SIA a Kyoto che a Nara (bottone viola nella tab Codici) · carrozza e posto scritti sul biglietto digitale.",
+"Parco e cervi → Tōdai-ji":"I cervi si inchinano per i senbei (¥200 dai carretti) — tenete zaini chiusi e niente carta in mano · il Daibutsuden apre alle 7:30.",
+"PRANZO SARASOJYU":"SOLO CONTANTI · tavolo riservato a nome Bonifati · tutto il locale è 100% gluten free: Leo ordina QUALSIASI cosa. Momento libertà.",
+"Nakatanidou: mochi battuto":"Il pounding show è a orari casuali: se battono, filmate · mochi yomogi appena fatto = GF (riso e artemisia) — chiedete conferma no-farina sul ripieno.",
+"AONIYOSHI n.9506 → Kyoto 16:31 💜":"Carrozza 4, posti finestrino 6C-6D + 7C-7D · e-ticket VIVO dal sito (screenshot non valido) · banco vendita in carrozza 2: dolci NO per Leo, birra craft e caffè sì · base fare: Suica ai tornelli.",
+"Shinkansen → Okayama":"smartEX: QR o carta associata ai tornelli · a Okayama: locale linea Uno (~50 min) fino al capolinea porto.",
+"Traghetto Uno → Miyanoura ~12:30":"Biglietti al porto (~¥300/¥150, contanti o IC) · 20 min di traversata · ponte esterno per le foto.",
+"CHICHU ART MUSEUM":"Biglietto nell'account Benesse Art Site (eventos.tokyo, login gmail) · niente foto all'interno · con sole forte danno ombrellini · Monet si guarda scalzi.",
+"Cena kaiseki Benesse":"Confermata con GF per Leo (cucina condivisa accettata) · dress smart casual · tavolo con vista tramonto se arrivate puntuali.",
+"Shinkansen → Shin-Osaka":"smartEX · se in fascia c'è un KODAMA SERIE 500 (il treno-jet), prendetelo per Leo anche se più lento: è l'ultimo dei suoi giorni di gloria.",
+"Ingresso HIRAKUZA (Namba Parks 8F)":"Stesso complesso dell'hotel: ascensore e siete dentro · ingresso 17:30, show 18:00-19:00 · bento GF concordato via mail: ritiro all'ingresso.",
+"USJ: Wizarding World per primo 🪄":"Cancelli spesso aprono PRIMA dell'orario ufficiale: alle 8:00 siate lì · dritti a Harry Potter, il resto dopo · borsoni nei coin locker grandi FUORI dai cancelli · burrobirra: senza glutine (verificate la versione frozen).",
+"Ritiro bagagli Yamato · check-in":"Sportello Yamato al T1 KIX, arrivi · poi check-in Qatar (apre 3h prima) · duty free dopo i controlli per gli ultimi KitKat."
+};
+
+const TT={
+"Suica fisica per Leo":"🚶 5 min dal Peninsula",
+"Creative Museum Tokyo":"🚶 12 min da Yurakucho",
+"Pranzo Kyobashi/Ginza":"🚶 5-10 min",
+"Itoya · cartoleria (12 piani)":"🚶 6 min dal pranzo",
+"Nezu Museum":"🚕 15 min di taxi da Itoya",
+"Cena omakase · Ginza Tsukasa":"🚶 8 min dal Peninsula",
+"Senso-ji e Nakamise":"🚕 15 min o 🚇 Ginza line ~20",
+"Kappabashi":"🚶 12 min da Senso-ji",
+"Kakimori · quaderno su misura ✒️":"🚶 8 min da Kappabashi",
+"Pranzo ad Asakusa":"🚶 10 min di rientro",
+"Barca Hotaluna → Hinode":"🚶 6 min al molo · ⛴ navigazione 55 min",
+"Taxi hotel · riposo":"🚕 15 min da Hinode",
+"Akihabara":"🚕 10 min / 🚇 15",
+"teamLab Borderless":"🚕 10 min dall'hotel",
+"Pranzo T-Market Toranomon":"🚶 15 min o 🚕 5",
+"Nintendo Tokyo + Pokémon Center":"🚕 15 min per Shibuya PARCO",
+"Shibuya Sky al tramonto":"🚶 5 min da PARCO",
+"Centifolia ×2 🍸":"🚕 10 min dall'hotel",
+"Meiji Jingū":"🚕 20 min dall'hotel",
+"Takeshita-dōri · Harajuku":"🚶 5 min",
+"Omotesandō + vintage Amore":"🚶 10 min",
+"Pranzo Soho House Tokyo ✓":"🚶 5-10 min",
+"Shimokitazawa · thrift":"🚇 15 min (Chiyoda+Odakyū) o 🚕 20",
+"Capyneko Cafe · capibara 🦫":"🚃 Inokashira 12 min + 🚶 5",
+"Rientro · cena rilassata zona Ginza/hotel":"🚃 JR Chūō ~35 min o 🚕 30",
+"Taxi Tokyo Station":"🚕 8 min",
+"Kagayaki → Kanazawa 11:48":"⏱ viaggio 2h28",
+"Pranzo Omicho Market":"🚶 15 min dalla stazione o 🚌 5",
+"Nagamachi + Nomura-ke":"🚶 15 min",
+"21st Century Museum + piscina":"🚶 12 min",
+"Kenroku-en":"🚶 5 min",
+"Higashi Chaya":"🚕 8 min o 🚶 25",
+"Cena Fuwari":"🚶 8 min dall'hotel",
+"Kanazawa Castle + Gyokusen'inmaru":"🚶 15 min dal Sanraku",
+"Tsurugi → Kagaonsen 11:55":"⏱ 25 min di treno",
+"Navetta Rurikoh (o taxi 10 min)":"🚐 10 min",
+"Pranzo a Yamanaka":"🚕 15 min dal ryokan",
+"Gole di Kakusenkei":"🚶 5 min dal centro di Yamanaka",
+"Check-in Rurikoh · onsen":"🚕 15 min dalle gole",
+"Tsurugi → Tsuruga → Thunderbird":"⏱ 25 min + cambio 10 + 55 min",
+"Taxi Capella · deposito bagagli":"🚕 10 min dalla stazione",
+"Pranzo Nishiki Market":"🚶 10 min",
+"Ninenzaka · Sannenzaka":"🚕 10 min o 🚌 15",
+"Kiyomizu-dera":"🚶 10 min in salita",
+"Yasaka Shrine e Gion":"🚶 15 min in discesa",
+"Otagi Nenbutsu-ji":"🚕 30 min dall'hotel",
+"Adashino → Saga-Toriimoto → bambù → Nonomiya":"🚶 percorso ~1h30 in discesa",
+"Kimono Forest → ponte Togetsukyo":"🚶 10 min",
+"Cerimonia del tè casual":"🚃 JR Sagano 15 min + 🚶 10",
+"Fushimi Inari":"🚃 Keihan 8 min da Gion-Shijō + 🚶 5",
+"Sanjūsangen-dō (o Railway Museum)":"🚃 7 min + 🚶 7",
+"Teramachi/Shinkyogoku: vintage e acquisti":"🚶 15 min dall'hotel",
+"Cena Pontocho / Kamogawa":"🚶 5 min",
+"In stazione (Kyoto Kintetsu)":"🚕 10 min dal Capella",
+"Treno n.807 → Nara 9:30":"⏱ 35 min",
+"Parco e cervi → Tōdai-ji":"🚶 25 min nel parco (o 🚌 8)",
+"PRANZO SARASOJYU":"🚶 25 min verso Naramachi",
+"Nakatanidou: mochi battuto":"🚶 10 min",
+"Kasuga Taisha (o Kōfuku-ji)":"🚶 15 min",
+"Al binario":"🚶 15-20 min dal Kasuga — calcolarli!",
+"Shinkansen → Okayama":"⏱ ~1h + 🚃 locale Uno 50 min",
+"Traghetto Uno → Miyanoura ~12:30":"⛴ 20 min",
+"Navetta Benesse · deposito · pranzo leggero":"🚐 10 min",
+"CHICHU ART MUSEUM":"🚐 navetta interna 5 min",
+"Check-in Beach Suite · Pumpkin al tramonto":"🚶 10 min sulla spiaggia",
+"Honmura: Art House Project + ANDO Museum":"🚐 navetta 10 min",
+"Traghetto → Uno → Okayama":"⛴ 20 min + 🚃 50",
+"Shinkansen → Shin-Osaka":"⏱ 45 min",
+"Check-in Centara Grand Namba":"🚕 20 min da Shin-Osaka",
+"Ingresso HIRAKUZA (Namba Parks 8F)":"🛗 stesso edificio: ascensore all'8F",
+"Dōtonbori a piedi":"🚶 8 min",
+"Namba → Nishikujo → Universal City":"🚃 ~25 min (Hanshin + JR Yumesaki)",
+"Universal City → Nishikujo → Kansai Airport Rapid":"🚃 ~75 min totali fino a KIX"
+};
+const QRS={
+"Fiumicino T3":[["q-bfil","Filippo — Boarding QR114","Imbarco 21:55 · posto 5K","Filippo"],["q-bflo","Floriana — Boarding QR114","Imbarco 21:55 · posto 5F","Floriana"],["q-bleo","Leonardo — Boarding QR114","Imbarco 21:55 · posto 5E","Leo"]],
+"QR114 → Doha":[["q-bfil","Filippo — Boarding QR114","Posto 5K","Filippo"],["q-bflo","Floriana — Boarding QR114","Posto 5F","Floriana"],["q-bleo","Leonardo — Boarding QR114","Posto 5E","Leo"]],
+"Arrivo Haneda 🛬":[["q-fil","Filippo — Visit Japan Web","Mostrare all'immigrazione","Filippo"],["q-flo","Floriana — Visit Japan Web","Mostrare all'immigrazione","Floriana"],["q-leo","Leonardo — Visit Japan Web","Mostrare all'immigrazione","Leo"]],
+"21st Century Museum + piscina":[["q-m1","21st Century · Adulto 1","16/8 h15:00 · Collection Exhibition","Adulto 1"],["q-m2","21st Century · Adulto 2","16/8 h15:00 · Collection Exhibition","Adulto 2"],["q-mleo","21st Century · Leonardo","16/8 h15:00 · studenti","Leo"]],
+"CHICHU ART MUSEUM":[["q-ca","Chichu · Adulto 1","22/8 h14:30 · ¥2700","Adulto 1"],["q-cb","Chichu · Adulto 2","22/8 h14:30 · ¥2700","Adulto 2"],["q-cc","Chichu · Leonardo","Under 15 · gratis","Leo"]]
+};
+const LNKX={
+"QR114 → Doha":[["https://www.google.com/search?q=QR114+stato+volo","📡 Stato live"],["https://www.flightradar24.com/data/flights/qr114","🛰 FR24"]],
+"QR812 → Haneda ⚠":[["https://www.google.com/search?q=QR812+stato+volo","📡 Stato live"],["https://www.flightradar24.com/data/flights/qr812","🛰 FR24"]],
+"QR803 → Doha → Roma 07:25 del 25":[["https://www.google.com/search?q=QR803+stato+volo","📡 Stato live"],["https://www.flightradar24.com/data/flights/qr803","🛰 FR24"]],
+"teamLab Borderless":[["https://borderless-azabudai.ticket.teamlab.art/tickets/#/id/gOk_ijR5weZ-Fk36cojH-tX5yQ5Yu0LlngvXi3i0eAwqANPcyEQMZ-VRRm8UeZya?lang=en","🎫 Biglietti (QR da 24h prima)"]],
+"Treno n.807 → Nara 9:30":[["https://linkt.to/ysQFzJFJ","🎫 QR treno"]],
+"In stazione (Kyoto Kintetsu)":[["https://linkt.to/ysQFzJFJ","🎫 QR treno"]],
+"AONIYOSHI n.9506 → Kyoto 16:31 💜":[["https://www.ticket.kintetsu.co.jp/vs/en/","🚆 E-ticket vivo"]],
+"Al binario":[["https://www.ticket.kintetsu.co.jp/vs/en/","🚆 E-ticket vivo"]],
+"Ritiro biglietti Eki-Net":[["https://www.eki-net.com/","🎫 Eki-Net"]]
+};
+const CITY={"2026-08-10":["Roma",41.9,12.5],"2026-08-11":["Tokyo",35.68,139.77],"2026-08-12":["Tokyo",35.68,139.77],"2026-08-13":["Tokyo",35.68,139.77],"2026-08-14":["Tokyo",35.68,139.77],"2026-08-15":["Tokyo",35.68,139.77],"2026-08-16":["Kanazawa",36.56,136.66],"2026-08-17":["Kaga",36.30,136.31],"2026-08-18":["Kyoto",35.01,135.77],"2026-08-19":["Kyoto",35.01,135.77],"2026-08-20":["Kyoto",35.01,135.77],"2026-08-21":["Nara",34.68,135.83],"2026-08-22":["Naoshima",34.46,133.99],"2026-08-23":["Osaka",34.66,135.50],"2026-08-24":["Osaka",34.66,135.50]};
+const BAG={
+"2026-08-10":"Passaporti + carte d'imbarco nel Wallet · felpa per l'aereo · snack GF per Leo · power bank",
+"2026-08-11":"All'arrivo: Visit Japan Web pronto sui telefoni · eSIM da attivare · ¥ dal Seven Bank ATM in aeroporto",
+"2026-08-12":"Ombrelli · contanti per la Suica di Leo (~¥3.000) · card GF · passaporti (sempre, per legge)",
+"2026-08-13":"Ombrelli/poncho · contanti per hanko e Kakimori · calze di ricambio",
+"2026-08-14":"Ombrello · telefoni carichi (biglietti teamLab/Sky) · power bank · outfit ok per il Centifolia (voi due)",
+"2026-08-15":"Ombrelli · calze pulite per i capibara · contanti per il vintage · card GF per il pranzo",
+"2026-08-16":"🎒 GIORNO ZAINI: borsoni a Yamato entro le 8:15 · in zaino roba per 2 notti · CARTA EKI-NET nel portafoglio · sveglia ore 9:00 puntata",
+"2026-08-17":"Zaini completi (notte al ryokan) · scarpe da camminata per le gole · contanti per taxi e pranzo (~¥8.000)",
+"2026-08-18":"Zaini fino al Capella, poi liberi · ombrello · biglietti treno (posti riservati)",
+"2026-08-19":"Scarpe da salita (Otagi, eventuale Monkey Park) · acqua · cappello",
+"2026-08-20":"Partenza presto: acqua e cappello per Fushimi · borsa pieghevole per gli acquisti",
+"2026-08-21":"💴 CONTANTI (Sarasojyu + senbei per i cervi) · telefoni CARICHI: QR treno + e-ticket Aoniyoshi · power bank",
+"2026-08-22":"🎒 GIORNO ZAINI: borsoni a Yamato → KIX · in zaino 1 notte + COSTUMI · biglietto Chichu nell'account Benesse",
+"2026-08-23":"Zaini completi fino al Centara · conferma Hirakuza · contanti traghetto",
+"2026-08-24":"Tutto con voi · poncho per USJ · passaporti a portata · borsoni nei coin locker fuori dai cancelli"};
+
+/* ───────── LOGICA ───────── */
+const $=s=>document.querySelector(s);
+function jstToday(){return new Intl.DateTimeFormat('en-CA',{timeZone:'Asia/Tokyo'}).format(new Date());}
+
+/* tabs */
+document.querySelectorAll('nav button').forEach(b=>b.onclick=()=>{
+  document.querySelectorAll('nav button').forEach(x=>x.classList.remove('on'));
+  document.querySelectorAll('.tab').forEach(x=>x.classList.remove('on'));
+  b.classList.add('on');$('#'+b.dataset.t).classList.add('on');window.scrollTo(0,0);});
+
+/* header day */
+const today=jstToday();
+const fmt=d=>{const[y,m,g]=d.split('-');const gg=['dom','lun','mar','mer','gio','ven','sab'][new Date(d+'T12:00:00').getDay()];return gg+' '+(+g)+'/'+(+m);};
+$('#hday').textContent=(DAYS.some(x=>x.d===today)?'Oggi in Giappone · ':'')+fmt(DAYS.some(x=>x.d===today)?today:DAYS[0].d);
+
+/* chips + dayview */
+let sel=DAYS.findIndex(x=>x.d===today); if(sel<0) sel=(today>DAYS[DAYS.length-1].d)?DAYS.length-1:0;
+const chips=$('#chips');
+DAYS.forEach((x,i)=>{const b=document.createElement('button');b.className='chip'+(x.d===today?' now':'');
+  b.textContent=(+x.d.split('-')[2]);b.onclick=()=>{sel=i;render();};chips.appendChild(b);});
+function render(){
+  [...chips.children].forEach((c,i)=>c.classList.toggle('sel',i===sel));
+  const d=DAYS[sel];
+  let h='<div class="day-head"><div class="day-title">'+fmt(d.d)+' · '+d.t+(d.d===today?'<span class="today-tag">OGGI</span>':'')+'</div><div class="day-sub">'+d.s+'</div>'+
+    (BAG[d.d]?'<div class="zbox">🎒 <b>Oggi con voi:</b> '+BAG[d.d]+'</div>':'')+
+    (FLIGHTS[d.d]?'<div class="fstat" id="fstat"></div>':'')+
+    (CITY[d.d]?'<div style="margin-top:8px"><a class="lnk map" target="_blank" href="https://www.google.com/search?q='+encodeURIComponent('meteo '+CITY[d.d][0]+' oggi orario')+'">🌤 Meteo '+CITY[d.d][0]+' ora per ora</a></div>':'')+
+    '</div><div class="tl">';
+  const notes=(NOTES[d.d]||[]).map((x,i)=>({h:x.h,n:x.t,un:true,ni:i}));
+  const items=d.st.concat(notes).sort((a,b)=>a.h<b.h?-1:a.h>b.h?1:0);
+  items.forEach(s=>{
+    if(s.un){
+      h+='<div class="stop un"><div class="s-time">'+s.h+'</div><div class="s-name">📝 '+esc(s.n)+'<button class="ndel" data-i="'+s.ni+'">✕</button></div></div>';
+      return;
+    }
+    const ex=EXTRAS[s.n];
+    if(TT[s.n])h+='<div class="leg">'+TT[s.n]+'</div>';
+    h+='<div class="stop '+(s.c||'')+(ex?' hasx':'')+'"><div class="s-time">'+s.h+'<span class="wic" data-h="'+s.h+'"></span></div><div class="s-name">'+s.n+
+       (s.b?'<span class="badge '+s.b+'">'+(s.b==='cash'?'💴 CONTANTI':s.b==='warn'?'⚠':s.b==='opt'?'⏳ SE AVANZA TEMPO':'✓')+'</span>':'')+
+       (ex?'<span class="xhint">ⓘ</span>':'')+'</div>'+
+       (s.o?'<div class="s-note">'+s.o+'</div>':'')+
+       (ex?'<div class="s-x">'+ex+'</div>':'');
+    let lk='';
+    if(s.m)lk+='<a class="lnk map" target="_blank" href="'+gm(s.m)+'">📍 Maps</a>';
+    if(LNKX[s.n])LNKX[s.n].forEach(x=>{lk+='<a class="lnk tik" target="_blank" href="'+x[0]+'">'+x[1]+'</a>';});
+    if(QRS[s.n])QRS[s.n].forEach(qq=>{lk+='<button class="lnk tik" onclick="event.stopPropagation();showQR(\''+qq[0]+'\',\''+qq[1].replace(/'/g,"\\'")+'\',\''+qq[2].replace(/'/g,"\\'")+'\')">🎫 '+qq[3]+'</button>';});
+    if(lk)h+='<div class="s-links">'+lk+'</div>';
+    h+='</div>';});
+  h+='</div><button class="addbtn" id="addbtn">＋ Aggiungi appunto o incastro orario</button>'+
+     '<div class="noteform" id="nform"><input type="time" id="nf-h" value="12:00"><input type="text" id="nf-t" placeholder="Es. ritiro hanko · chiamata di lavoro"><button id="nf-s">Salva</button></div>';
+  $('#dayview').innerHTML=h;
+  document.querySelectorAll('.stop.hasx').forEach(el=>el.addEventListener('click',e=>{if(e.target.closest('a,button'))return;el.classList.toggle('open');}));
+  document.querySelectorAll('.ndel').forEach(b=>b.onclick=e=>{e.stopPropagation();NOTES[d.d].splice(+b.dataset.i,1);saveNotes();render();});
+  $('#addbtn').onclick=()=>$('#nform').classList.toggle('on');
+  $('#nf-s').onclick=()=>{const t=$('#nf-t').value.trim();if(!t)return;(NOTES[d.d]=NOTES[d.d]||[]).push({h:$('#nf-h').value||'12:00',t:t});saveNotes();render();};
+  chips.children[sel]&&chips.children[sel].scrollIntoView({inline:'center',block:'nearest'});
+  loadWeather(d);
+  loadFlight(d);
+}
+const FLIGHTS={"2026-08-10":"QR114","2026-08-11":"QR812","2026-08-24":"QR803"};
+let FLIGHT_API_KEY=''; /* passala UNA volta nell'URL: index.html?flkey=LA-TUA-CHIAVE → resta salvata sul dispositivo */
+try{
+  const _u=new URL(location.href), _k=_u.searchParams.get('flkey');
+  if(_k){localStorage.setItem('flkey',_k);_u.searchParams.delete('flkey');
+    history.replaceState(null,'',_u.pathname+(_u.searchParams.toString()?'?'+_u.searchParams.toString():'')+_u.hash);}
+  FLIGHT_API_KEY=localStorage.getItem('flkey')||'';
+}catch(e){}
+async function loadFlight(d){
+  const f=FLIGHTS[d.d], el=document.getElementById('fstat');
+  if(!f||!el) return;
+  await READY;
+  if(!SRV&&!FLIGHT_API_KEY) return;
+  try{
+    await READY;
+    const url=SRV?('/api/flight/'+f):('https://airlabs.co/api/v9/flight?flight_iata='+f+'&api_key='+FLIGHT_API_KEY);
+    const r=await fetch(url);
+    const j=await r.json(); const x=j&&j.response; if(!x||DAYS[sel].d!==d.d) return;
+    el.style.display='block';
+    el.innerHTML='✈ <b>'+f+'</b> · '+(x.status||'—')
+      +(x.dep_terminal?' · Terminal '+x.dep_terminal:'')
+      +(x.dep_gate?' · Gate <b>'+x.dep_gate+'</b>':'')
+      +(x.dep_estimated?' · partenza stimata '+x.dep_estimated.slice(11,16):'')
+      +(x.arr_estimated?' · arrivo '+x.arr_estimated.slice(11,16):'')
+      +(x.arr_gate?' · sbarco '+x.arr_gate:'');
+  }catch(e){}
+}
+const WC={};
+async function loadWeather(d){
+  const c=CITY[d.d]; if(!c) return;
+  const k=d.d;
+  if(!(k in WC)){
+    try{
+      const r=await fetch('https://api.open-meteo.com/v1/forecast?latitude='+c[1]+'&longitude='+c[2]+'&hourly=precipitation_probability&timezone=auto&start_date='+k+'&end_date='+k);
+      const j=await r.json(); WC[k]=(j.hourly&&j.hourly.time)?j.hourly:null;
+    }catch(e){WC[k]=null;}
+  }
+  const w=WC[k]; if(!w||DAYS[sel].d!==k) return;
+  document.querySelectorAll('#dayview .wic').forEach(el=>{
+    const hh=parseInt(el.dataset.h,10); if(isNaN(hh)) return;
+    const i=w.time.findIndex(t=>t.slice(11,13)===('0'+hh).slice(-2));
+    if(i<0) return; const p=w.precipitation_probability[i];
+    el.textContent=p>=60?' ☔':(p>=35?' 🌦':''); el.title='Pioggia '+p+'%';
+  });
+}
+let NOTES={};const NKEY='giappone2026-notes';
+function esc(t){return t.replace(/[<>&"]/g,c=>({'<':'&lt;','>':'&gt;','&':'&amp;','"':'&quot;'}[c]));}
+async function loadNotes(){const v=await stGet(NKEY);if(v)try{NOTES=JSON.parse(v);}catch(e){}}
+async function saveNotes(){await stSet(NKEY,JSON.stringify(NOTES));}
+loadNotes().then(render);
+
+/* codici */
+function codeRows(arr){return arr.map(([l,v])=>'<div class="crow"><span class="c-l">'+l+'</span><span style="display:flex;gap:8px;align-items:center"><span class="c-v mono">'+v+'</span>'+(/^[A-Z0-9_\-]{5,}$/.test(v)?'<button class="copy" data-v="'+v+'">COPIA</button>':'')+'</span></div>').join('');}
+$('#cod-volo').innerHTML=codeRows(CODES.volo);
+$('#cod-treni').innerHTML=codeRows(CODES.treni);
+$('#cod-hotel').innerHTML=codeRows(CODES.hotel);
+document.querySelectorAll('.copy').forEach(b=>b.onclick=async()=>{try{await navigator.clipboard.writeText(b.dataset.v);b.textContent='✓';b.classList.add('did');setTimeout(()=>{b.textContent='COPIA';b.classList.remove('did')},1500);}catch(e){}});
+
+/* checklist con storage persistente */
+let ckState={};const KEY='giappone2026-check';
+const SHARED=false;
+let SRV=false;
+const READY=(async()=>{try{const r=await fetch('/api/ok',{cache:'no-store'});if(r.ok){const j=await r.json();SRV=true;if(j.shared){const n=document.getElementById('stnote');if(n)n.textContent='Spunte e appunti condivisi da tutta la famiglia (salvati sul server).';}}}catch(e){}})();
+async function stGet(k){
+  await READY;
+  if(SRV){try{const r=await fetch('/api/state/'+encodeURIComponent(k));if(r.ok){const j=await r.json();if(j.value!=null)return j.value;}}catch(e){}}
+  if(window.storage){try{const r=await window.storage.get(k,SHARED);return r?r.value:null;}catch(e){return null;}}
+  try{return localStorage.getItem(k);}catch(e){return null;}
+}
+async function stSet(k,v){
+  await READY;
+  if(SRV){try{const r=await fetch('/api/state/'+encodeURIComponent(k),{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify({value:v})});if(r.ok)return true;}catch(e){}}
+  if(window.storage){try{await window.storage.set(k,v,SHARED);return true;}catch(e){return false;}}
+  try{localStorage.setItem(k,v);return true;}catch(e){return false;}
+}
+async function loadCk(){const v=await stGet(KEY);if(v)try{ckState=JSON.parse(v);}catch(e){}}
+async function saveCk(){const ok=await stSet(KEY,JSON.stringify(ckState));if(!ok)$('#stnote').textContent='⚠ Salvataggio non disponibile qui: le spunte durano solo per questa sessione.';}
+function renderCk(){
+  let tot=0,done=0,h='';
+  CHECKS.forEach((g,gi)=>{h+='<h2 class="g"><span class="bar"></span>'+g.g+'</h2>';
+    g.i.forEach((it,ii)=>{const id=gi+'-'+ii;const on=!!ckState[id];tot++;if(on)done++;
+      h+='<label class="ck'+(on?' done':'')+'"><input type="checkbox" data-id="'+id+'" '+(on?'checked':'')+'><span><span class="ck-t">'+it[0]+'</span>'+(it[1]?'<br><span class="ck-s">'+it[1]+'</span>':'')+'</span></label>';});});
+  $('#cklist').innerHTML=h;$('#prog-n').textContent=done+'/'+tot;$('#prog-f').style.width=(tot?100*done/tot:0)+'%';
+  document.querySelectorAll('.ck input').forEach(c=>c.onchange=()=>{ckState[c.dataset.id]=c.checked;saveCk();renderCk();});}
+loadCk().then(renderCk);
+
+/* celiachia */
+$('#phrases').innerHTML=PHRASES.map((p,i)=>'<div class="phrase" onclick="showPhrase('+i+')"><div class="ph-jp">'+p[0]+'</div><div class="ph-it">'+p[1]+'</div></div>').join('');
+window.showPhrase=i=>{$('#bp-t').textContent=PHRASES[i][0];$('#bp-i').textContent=PHRASES[i][1];$('#bigphrase').classList.add('on');};
+
+window.showQR=function(id,label,sub){
+  document.getElementById('qb-img').src=document.getElementById(id).src;
+  document.getElementById('qb-l').textContent=label;
+  document.getElementById('qb-s').textContent=sub;
+  document.getElementById('qrbig').classList.add('on');
+};
+</script>
+</body>
+</html>

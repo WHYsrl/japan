@@ -1,0 +1,20 @@
+services:
+  - type: web
+    name: japan-2026
+    runtime: node
+    plan: starter   # a pagamento: niente sleep, sempre caldo
+    buildCommand: npm install
+    startCommand: node server.js
+    envVars:
+      - key: AIRLABS_KEY
+        sync: false
+      - key: APP_PASSWORD
+        sync: false
+      - key: DATABASE_URL
+        fromDatabase:
+          name: japan-db
+          property: connectionString
+
+databases:
+  - name: japan-db
+    plan: free
