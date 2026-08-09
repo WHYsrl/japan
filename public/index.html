@@ -164,8 +164,21 @@ a.tel{color:var(--shu);text-decoration:none;font-weight:700}
 .idea-ai .ai-h{font-size:11px;font-weight:900;color:var(--murasaki);margin-bottom:4px}
 .idea-ai.err{background:#FBE9E8;border-color:#EFC9C7}
 .idea-ai.err .ai-h{color:var(--shu-d)}
-.idea-actions{display:flex;gap:8px;margin-top:10px}
+.idea-actions{display:flex;gap:8px;margin-top:10px;flex-wrap:wrap;align-items:center}
 .idea-actions button{border:1.5px solid var(--line);background:var(--washi);border-radius:10px;font-size:11px;font-weight:900;padding:6px 10px;color:var(--sub);font-family:inherit}
+.ideaform input[type=url],.ideaform input[type=text]{width:100%;border:1.5px solid var(--line);border-radius:12px;padding:9px 12px;font-family:inherit;font-size:13.5px;background:#fff;margin-top:8px}
+.photo-row{display:flex;gap:10px;align-items:center;margin-top:8px}
+.photo-btn{border:1.5px solid var(--line);background:#fff;border-radius:12px;padding:9px 12px;font-size:13px;font-weight:700;color:var(--sub);font-family:inherit}
+#idea-prev{width:52px;height:52px;object-fit:cover;border-radius:10px;border:1.5px solid var(--line)}
+.prev-x{border:0;background:var(--ink);color:#fff;border-radius:99px;width:26px;height:26px;font-family:inherit;font-weight:900}
+.idea-det{font-size:12.5px;color:var(--sub);margin-top:4px;line-height:1.5}
+.idea-ph{width:100%;border-radius:12px;margin-top:10px;border:1.5px solid var(--line)}
+
+/* ── mappe ── */
+.mapchip{display:inline-block;border:1.5px solid var(--line);background:var(--card);border-radius:999px;padding:7px 13px;margin:3px 6px 3px 0;font-size:12.5px;font-weight:700;color:var(--ink);text-decoration:none}
+.mapchip.go{background:var(--kin);border-color:var(--kin);color:#fff}
+.map-day{margin-bottom:14px}
+.map-dt{font-size:13px;font-weight:900;margin-bottom:6px;color:var(--sub)}
 
 /* ── bottom nav ── */
 nav{position:fixed;bottom:0;left:0;right:0;z-index:30;background:rgba(255,255,255,.96);backdrop-filter:blur(8px);
@@ -297,6 +310,14 @@ nav button.on{color:var(--shu)}
     <h2 class="v"><span class="bar"></span>Idee di famiglia</h2>
     <div class="ideaform">
       <textarea id="idea-text" placeholder="Es. «un salto da Don Quijote», «gelato al matcha», «negozio di coltelli»…"></textarea>
+      <input type="url" id="idea-link" placeholder="🔗 Link Google Maps (facoltativo)">
+      <input type="text" id="idea-det" placeholder="📝 Dettagli: orari, prezzi, note (facoltativo)">
+      <div class="photo-row">
+        <button class="photo-btn" id="idea-photo-btn">📷 Aggiungi foto/screenshot</button>
+        <input type="file" id="idea-photo" accept="image/*" hidden>
+        <img id="idea-prev" hidden alt="anteprima">
+        <button class="prev-x" id="idea-prev-x" hidden>✕</button>
+      </div>
       <div class="who-row" id="who-row">
         <button class="who sel" data-w="Flo">Flo</button>
         <button class="who" data-w="Fili">Fili</button>
@@ -306,6 +327,16 @@ nav button.on{color:var(--shu)}
       <p class="storage-note" id="ideanote">Le idee sono condivise: le vede tutta la famiglia.</p>
     </div>
     <div id="idealist"></div>
+  </section>
+
+  <!-- MAPPE -->
+  <section class="tab" id="tab-map">
+    <h2 class="k"><span class="bar"></span>Le basi</h2>
+    <div id="map-bases"></div>
+    <h2 class="v"><span class="bar"></span>Dalle idee</h2>
+    <div id="map-ideas"></div>
+    <h2><span class="bar"></span>Tutti i luoghi del programma</h2>
+    <div id="map-days"></div>
   </section>
 </main>
 
@@ -328,6 +359,7 @@ nav button.on{color:var(--shu)}
   <button data-t="tab-ck"><span class="ico">✅</span>Checklist</button>
   <button data-t="tab-gf"><span class="ico">🍙</span>Celiachia</button>
   <button data-t="tab-idee"><span class="ico">💡</span>Idee</button>
+  <button data-t="tab-map"><span class="ico">🗺</span>Mappe</button>
 </nav>
 
 <script>
@@ -830,13 +862,17 @@ document.querySelectorAll('#who-row .who').forEach(b=>b.onclick=()=>{
   b.classList.add('sel');IDEA_WHO=b.dataset.w;});
 function renderIdeas(){
   const el=$('#idealist');
+  renderMapIdeas();
   if(!IDEAS.length){el.innerHTML='<p class="storage-note">Ancora nessuna idea: la prima è la tua.</p>';return;}
   el.innerHTML=IDEAS.map(i=>'<div class="idea'+(i.done?' done':'')+'">'
     +'<div class="idea-meta"><span>💡 '+esc(i.who||'?')+'</span><span>'+esc((i.ts||'').slice(8,10)+'/'+(i.ts||'').slice(5,7))+'</span></div>'
     +'<div class="idea-t">'+esc(i.text||'')+'</div>'
+    +(i.details?'<div class="idea-det">📝 '+esc(i.details)+'</div>':'')
+    +(i.img?'<img class="idea-ph" src="/api/ideas/'+i.id+'/img" loading="lazy" alt="foto idea">':'')
     +(i.ai?'<div class="idea-ai"><div class="ai-h">CLAUDE SUGGERISCE</div>'+esc(i.ai)+'</div>':'')
     +(!i.ai&&i._err?'<div class="idea-ai err"><div class="ai-h">⚠ SUGGERIMENTO NON ARRIVATO</div>'+esc(i._err)+'</div>':'')
     +'<div class="idea-actions">'
+    +(i.link&&/^https?:\/\//.test(i.link)?'<a class="mapchip" style="margin:0" href="'+esc(i.link)+'" target="_blank" rel="noopener">🗺 Maps</a>':'')
     +(!i.ai?'<button data-act="ai" data-id="'+i.id+'">🔮 Chiedi a Claude</button>':'')
     +'<button data-act="done" data-id="'+i.id+'">'+(i.done?'Riapri':'✓ Fatta')+'</button>'
     +'<button data-act="del" data-id="'+i.id+'">Elimina</button>'
@@ -847,7 +883,7 @@ async function askAI(idea){
   idea._err=null;
   try{
     const r=await fetch('/api/ai',{method:'POST',headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({text:idea.text,who:idea.who,itinerary:compactPlan()})});
+      body:JSON.stringify({ideaId:idea.id,text:idea.text,who:idea.who,details:idea.details||'',link:idea.link||'',itinerary:compactPlan()})});
     let j=null;try{j=await r.json();}catch(e){}
     if(r.ok&&j&&j.suggestion){
       idea.ai=j.suggestion;
@@ -870,20 +906,68 @@ async function loadIdeas(){
   if(!SRV){$('#ideanote').textContent='⚠ Le idee condivise funzionano solo sul sito online.';return;}
   try{const r=await fetch('/api/ideas',{cache:'no-store'});if(r.ok){IDEAS=await r.json();renderIdeas();}}catch(e){}
 }
+/* foto: compressione lato client */
+let IDEA_IMG=null;
+$('#idea-photo-btn').onclick=()=>$('#idea-photo').click();
+$('#idea-photo').onchange=e=>{
+  const f=e.target.files[0];if(!f)return;
+  const img=new Image();
+  img.onload=()=>{
+    const M=1200,r=Math.min(1,M/Math.max(img.width,img.height));
+    const c=document.createElement('canvas');
+    c.width=Math.round(img.width*r);c.height=Math.round(img.height*r);
+    c.getContext('2d').drawImage(img,0,0,c.width,c.height);
+    IDEA_IMG=c.toDataURL('image/jpeg',0.72);
+    const p=$('#idea-prev');p.src=IDEA_IMG;p.hidden=false;
+    $('#idea-prev-x').hidden=false;
+    $('#idea-photo-btn').textContent='📷 Foto pronta ✓';
+    URL.revokeObjectURL(img.src);
+  };
+  img.src=URL.createObjectURL(f);
+  e.target.value='';
+};
+$('#idea-prev-x').onclick=()=>{IDEA_IMG=null;$('#idea-prev').hidden=true;$('#idea-prev-x').hidden=true;$('#idea-photo-btn').textContent='📷 Aggiungi foto/screenshot';};
+
 $('#idea-send').onclick=async()=>{
-  const ta=$('#idea-text'),text=ta.value.trim();if(!text)return;
+  const ta=$('#idea-text'),text=ta.value.trim();
+  if(!text&&!IDEA_IMG)return;
   const btn=$('#idea-send');btn.disabled=true;btn.textContent='Invio…';
   try{
     if(!SRV)throw new Error('offline');
-    const r=await fetch('/api/ideas',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({who:IDEA_WHO,text})});
+    const r=await fetch('/api/ideas',{method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({who:IDEA_WHO,text:text||'(foto)',link:$('#idea-link').value.trim(),details:$('#idea-det').value.trim(),img:IDEA_IMG})});
     if(!r.ok)throw new Error('server');
-    const idea=await r.json();IDEAS.unshift(idea);ta.value='';renderIdeas();
+    const idea=await r.json();IDEAS.unshift(idea);
+    ta.value='';$('#idea-link').value='';$('#idea-det').value='';$('#idea-prev-x').onclick();
+    renderIdeas();
     btn.textContent='🔮 Claude ci pensa…';
     await askAI(idea);renderIdeas();
   }catch(e){$('#ideanote').textContent='⚠ Non riesco a salvare: le idee funzionano sul sito online.';}
   btn.disabled=false;btn.textContent='Invia — Claude suggerisce dove incastrarla 💡';
 };
 loadIdeas();
+
+/* ───────── MAPPE ───────── */
+const BASES=[
+ ["The Peninsula Tokyo","11–16/8","The Peninsula Tokyo"],
+ ["Hotel Sanraku Kanazawa","16–17/8","Hotel Sanraku Kanazawa"],
+ ["Rurikoh · Yamashiro Onsen","17–18/8","Rurikoh Yamashiro Onsen Kaga"],
+ ["Capella Kyoto","18–22/8","Capella Kyoto"],
+ ["Benesse House · Naoshima","22–23/8","Benesse House Naoshima"],
+ ["Centara Grand Namba · Osaka","23–24/8","Centara Grand Hotel Osaka Namba"]];
+$('#map-bases').innerHTML=BASES.map(b=>'<div class="cardbox" style="padding:12px 14px;margin-bottom:8px"><div class="crow" style="border:0;padding:0"><span><span class="c-v">🏨 '+b[0]+'</span><br><span class="c-l">'+b[1]+'</span></span><a class="mapchip go" style="margin:0" href="'+gm(b[2])+'" target="_blank" rel="noopener">🗺 Apri</a></div></div>').join('');
+$('#map-days').innerHTML=DAYS.map(d=>{
+  const ls=d.st.filter(s=>s.m);if(!ls.length)return '';
+  return '<div class="map-day"><div class="map-dt">'+(+d.d.split('-')[2])+'/'+(+d.d.split('-')[1])+' · '+esc(d.t)+'</div>'
+    +ls.map(s=>'<a class="mapchip" target="_blank" rel="noopener" href="'+gm(s.m)+'">'+esc(s.n)+'</a>').join('')+'</div>';
+}).join('');
+function renderMapIdeas(){
+  const el=document.getElementById('map-ideas');if(!el)return;
+  const wl=IDEAS.filter(i=>i.link&&/^https?:\/\//.test(i.link));
+  el.innerHTML=wl.length?wl.map(i=>'<a class="mapchip" target="_blank" rel="noopener" href="'+esc(i.link)+'">💡 '+esc((i.text||'').slice(0,40))+'</a>').join('')
+    :'<p class="storage-note" style="text-align:left;margin:0 0 6px">Le idee con un link Google Maps compariranno qui.</p>';
+}
+renderMapIdeas();
 </script>
 </body>
 </html>

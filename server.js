@@ -2,7 +2,7 @@
 const express = require('express');
 const path = require('path');
 const app = express();
-app.use(express.json());
+app.use(express.json({ limit: '8mb' }));
 
 /* ── Basic auth opzionale (imposta APP_PASSWORD su Render) ── */
 if (process.env.APP_PASSWORD) {
@@ -64,6 +64,10 @@ async function kvSet(k, v) {
   if (pool) { await pool.query('INSERT INTO kv (k,v) VALUES ($1,$2) ON CONFLICT (k) DO UPDATE SET v=$2', [k, v]); }
   else { mem[k] = v; }
 }
+async function kvDel(k) {
+  if (pool) { await pool.query('DELETE FROM kv WHERE k=$1', [k]); }
+  else { delete mem[k]; }
+}
 
 app.get('/api/ideas', async (req, res) => {
   try { res.json(JSON.parse(await kvGet('ideas') || '[]')); }
@@ -72,18 +76,34 @@ app.get('/api/ideas', async (req, res) => {
 
 app.post('/api/ideas', async (req, res) => {
   try {
-    const text = String((req.body && req.body.text) || '').trim().slice(0, 2000);
-    if (!text) return res.status(400).json({ error: 'testo vuoto' });
+    const b = req.body || {};
+    const text = String(b.text || '').trim().slice(0, 2000);
+    let img = String(b.img || '');
+    if (img && (!/^data:image\/(jpeg|png|webp);base64,[A-Za-z0-9+/=]+$/.test(img) || img.length > 5000000)) img = '';
+    if (!text && !img) return res.status(400).json({ error: 'testo vuoto' });
     const idea = {
       id: Date.now().toString(36) + Math.random().toString(36).slice(2, 6),
-      who: String((req.body && req.body.who) || '?').slice(0, 30),
-      text, ts: new Date().toISOString(), ai: null, done: false
+      who: String(b.who || '?').slice(0, 30),
+      text,
+      link: String(b.link || '').trim().slice(0, 500),
+      details: String(b.details || '').trim().slice(0, 1000),
+      ts: new Date().toISOString(), ai: null, done: false, img: !!img
     };
+    if (img) await kvSet('ideaimg:' + idea.id, img);
     const list = JSON.parse(await kvGet('ideas') || '[]');
     list.unshift(idea);
     await kvSet('ideas', JSON.stringify(list.slice(0, 200)));
     res.json(idea);
   } catch (e) { res.status(500).json({ error: String(e) }); }
+});
+
+app.get('/api/ideas/:id/img', async (req, res) => {
+  try {
+    const d = await kvGet('ideaimg:' + req.params.id);
+    const m = d && d.match(/^data:(image\/\w+);base64,(.+)$/);
+    if (!m) return res.status(404).end();
+    res.set('Content-Type', m[1]).set('Cache-Control', 'private, max-age=86400').send(Buffer.from(m[2], 'base64'));
+  } catch (e) { res.status(500).end(); }
 });
 
 app.put('/api/ideas/:id', async (req, res) => {
@@ -103,6 +123,7 @@ app.delete('/api/ideas/:id', async (req, res) => {
     let list = JSON.parse(await kvGet('ideas') || '[]');
     list = list.filter(x => x.id !== req.params.id);
     await kvSet('ideas', JSON.stringify(list));
+    await kvDel('ideaimg:' + req.params.id);
     res.json({ ok: true });
   } catch (e) { res.status(500).json({ error: String(e) }); }
 });
@@ -112,17 +133,33 @@ app.post('/api/ai', async (req, res) => {
   const key = process.env.ANTHROPIC_API_KEY;
   if (!key) return res.status(404).json({ error: 'ANTHROPIC_API_KEY non impostata' });
   try {
-    const text = String((req.body && req.body.text) || '').slice(0, 2000);
-    const who = String((req.body && req.body.who) || 'famiglia').slice(0, 30);
-    const itinerary = String((req.body && req.body.itinerary) || '').slice(0, 20000);
+    const b = req.body || {};
+    const text = String(b.text || '').slice(0, 2000);
+    const who = String(b.who || 'famiglia').slice(0, 30);
+    const details = String(b.details || '').slice(0, 1000);
+    const link = String(b.link || '').slice(0, 500);
+    const itinerary = String(b.itinerary || '').slice(0, 20000);
+    const content = [];
+    if (b.ideaId) {
+      const imgData = await kvGet('ideaimg:' + String(b.ideaId).slice(0, 40));
+      const m = imgData && imgData.match(/^data:(image\/\w+);base64,(.+)$/);
+      if (m) content.push({ type: 'image', source: { type: 'base64', media_type: m[1], data: m[2] } });
+    }
+    content.push({
+      type: 'text',
+      text: 'PROGRAMMA:\n' + itinerary + '\n\nNUOVA IDEA (di ' + who + '): ' + text
+        + (details ? '\nDETTAGLI: ' + details : '')
+        + (link ? '\nLINK: ' + link : '')
+        + (content.length ? '\n(In allegato una foto/screenshot: analizzala e tienine conto nel suggerimento.)' : '')
+    });
     const r = await fetch('https://api.anthropic.com/v1/messages', {
       method: 'POST',
       headers: { 'x-api-key': key, 'anthropic-version': '2023-06-01', 'content-type': 'application/json' },
       body: JSON.stringify({
         model: process.env.AI_MODEL || 'claude-opus-5',
         max_tokens: 2000,
-        system: "Sei l'assistente del viaggio in Giappone della famiglia Bonifati (10-25 agosto 2026; Leo, il figlio, è celiaco). Ricevi il programma e una nuova idea. Rispondi in italiano, massimo 120 parole, tono pratico e caldo: 1) di' se e DOVE incastrare l'idea (giorno e fascia oraria, citando cosa c'è già in programma), 2) avvertenze utili (caldo di agosto, orari di apertura da verificare, prenotazioni, distanze, glutine se si mangia). Se l'idea non sta in piedi, dillo con garbo e proponi un'alternativa.",
-        messages: [{ role: 'user', content: 'PROGRAMMA:\n' + itinerary + '\n\nNUOVA IDEA (di ' + who + '): ' + text }]
+        system: "Sei l'assistente del viaggio in Giappone della famiglia Bonifati (10-25 agosto 2026; Leo, il figlio, è celiaco). Ricevi il programma e una nuova idea, a volte con foto o screenshot (un luogo, un menu, un post social): se c'è, identifica cosa mostra e usala. Rispondi in italiano, massimo 120 parole, tono pratico e caldo: 1) di' se e DOVE incastrare l'idea (giorno e fascia oraria, citando cosa c'è già in programma), 2) avvertenze utili (caldo di agosto, orari di apertura da verificare, prenotazioni, distanze, glutine se si mangia). Se l'idea non sta in piedi, dillo con garbo e proponi un'alternativa.",
+        messages: [{ role: 'user', content }]
       })
     });
     const j = await r.json();
