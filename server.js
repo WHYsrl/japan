@@ -112,6 +112,11 @@ app.put('/api/ideas/:id', async (req, res) => {
     const it = list.find(x => x.id === req.params.id);
     if (!it) return res.status(404).json({ error: 'idea non trovata' });
     if (req.body && 'ai' in req.body) it.ai = String(req.body.ai || '').slice(0, 4000);
+    if (req.body && Array.isArray(req.body.chat)) {
+      it.chat = req.body.chat.slice(-40).map(m => ({ r: (m && m.r === 'a') ? 'a' : 'u', t: String((m && m.t) || '').slice(0, 5000), w: String((m && m.w) || '').slice(0, 30) })).filter(m => m.t);
+      const lastAi = it.chat.filter(m => m.r === 'a').slice(-1)[0];
+      it.ai = lastAi ? lastAi.t : it.ai;
+    }
     if (req.body && 'done' in req.body) it.done = !!req.body.done;
     await kvSet('ideas', JSON.stringify(list));
     res.json(it);
@@ -145,32 +150,51 @@ app.post('/api/ai', async (req, res) => {
       const m = imgData && imgData.match(/^data:(image\/\w+);base64,(.+)$/);
       if (m) content.push({ type: 'image', source: { type: 'base64', media_type: m[1], data: m[2] } });
     }
+    const oggi = new Intl.DateTimeFormat('it-IT', { dateStyle: 'full', timeZone: 'Asia/Tokyo' }).format(new Date());
     content.push({
       type: 'text',
-      text: 'PROGRAMMA:\n' + itinerary + '\n\nNUOVA IDEA (di ' + who + '): ' + text
+      text: 'Oggi in Giappone è ' + oggi + '.\n\nPROGRAMMA:\n' + itinerary + '\n\nNUOVA IDEA (di ' + who + '): ' + text
         + (details ? '\nDETTAGLI: ' + details : '')
         + (link ? '\nLINK: ' + link : '')
         + (content.length ? '\n(In allegato una foto/screenshot: analizzala e tienine conto nel suggerimento.)' : '')
     });
+    const msgs = [{ role: 'user', content }];
+    const history = Array.isArray(b.history) ? b.history.slice(-24) : [];
+    for (const m of history) {
+      const role = (m && m.r === 'a') ? 'assistant' : 'user';
+      let t = String((m && m.t) || '').slice(0, 5000);
+      if (!t) continue;
+      if (role === 'user' && m.w) t = String(m.w).slice(0, 30) + ': ' + t;
+      const last = msgs[msgs.length - 1];
+      if (last.role === role && typeof last.content === 'string') last.content += '\n' + t;
+      else msgs.push({ role, content: t });
+    }
     const r = await fetch('https://api.anthropic.com/v1/messages', {
       method: 'POST',
       headers: { 'x-api-key': key, 'anthropic-version': '2023-06-01', 'content-type': 'application/json' },
       body: JSON.stringify({
-        model: process.env.AI_MODEL || 'claude-opus-5',
-        max_tokens: 2000,
-        system: "Sei l'assistente del viaggio in Giappone della famiglia Bonifati (10-25 agosto 2026; Leo, il figlio, è celiaco). Ricevi il programma e una nuova idea, a volte con foto o screenshot (un luogo, un menu, un post social): se c'è, identifica cosa mostra e usala. Rispondi in italiano, massimo 120 parole, tono pratico e caldo: 1) di' se e DOVE incastrare l'idea (giorno e fascia oraria, citando cosa c'è già in programma), 2) avvertenze utili (caldo di agosto, orari di apertura da verificare, prenotazioni, distanze, glutine se si mangia). Se l'idea non sta in piedi, dillo con garbo e proponi un'alternativa.",
-        messages: [{ role: 'user', content }]
+        model: process.env.AI_MODEL || 'claude-fable-5',
+        max_tokens: 4000,
+        tools: [{ type: 'web_search_20250305', name: 'web_search', max_uses: 5 }],
+        system: "Sei l'assistente del viaggio in Giappone della famiglia Bonifati (10-25 agosto 2026): Filippo (Fili), Floriana (Flo) e il figlio Leo, che è CELIACO. Ricevi il programma, un'idea firmata da uno di loro (a volte con foto o screenshot: identifica cosa mostra e usala) e l'eventuale conversazione. Rivolgiti sempre direttamente a chi firma il messaggio, dandogli del tu.\nREGOLE FERREE DI VERIFICA — la famiglia prende decisioni reali in viaggio sulla base delle tue risposte:\n1) Prima della prima risposta su qualunque locale o luogo fai SEMPRE almeno una ricerca web (nome + città) e basati sui risultati, MAI sulla memoria: la memoria su locali specifici è spesso sbagliata.\n2) MAI nominare, collocare o descrivere un locale che non compare nei risultati delle tue ricerche. Se un posto non risulta esistere, dillo chiaramente.\n3) Verifica orari di apertura, giorni di chiusura, prezzi e necessità di prenotare PRIMA di affermarli (periodo Obon: molte variazioni), e nel dubbio scrivi «non ho potuto confermare…». Meglio un dubbio dichiarato che un dettaglio inventato.\n4) Se la ricerca smentisce quello che credevi, ammettilo e correggi.\nRispondi in italiano, massimo 150 parole, tono pratico e caldo: di' se e DOVE incastrare l'idea (giorno e fascia oraria, citando cosa c'è già in programma e i vincoli di orario reali) e le avvertenze utili (caldo di agosto, distanze, prenotazioni, glutine per Leo). Se l'idea non sta in piedi così com'è, dillo con garbo e proponi l'alternativa concreta migliore. Nelle risposte successive rispondi in modo diretto alla domanda specifica.",
+        messages: msgs
       })
     });
     const j = await r.json();
     if (j.error) return res.status(502).json({ error: j.error.message || 'errore API Anthropic' });
-    const textOut = (Array.isArray(j.content) ? j.content : [])
-      .filter(b => b && b.type === 'text').map(b => b.text).join('\n').trim();
+    const blocks = Array.isArray(j.content) ? j.content : [];
+    const textOut = blocks.filter(b => b && b.type === 'text').map(b => b.text).join('').trim();
     if (!textOut) {
       console.error('AI: risposta senza testo —', JSON.stringify(j).slice(0, 800));
       return res.status(502).json({ error: 'Risposta AI senza testo (stop_reason: ' + (j.stop_reason || '?') + ') — riprova' });
     }
-    res.json({ suggestion: textOut });
+    const cites = [];
+    for (const bk of blocks) {
+      if (bk && bk.type === 'text' && Array.isArray(bk.citations)) {
+        for (const c of bk.citations) { if (c && c.url && !cites.includes(c.url)) cites.push(c.url); }
+      }
+    }
+    res.json({ suggestion: textOut + (cites.length ? '\n\nFonti: ' + cites.slice(0, 3).join(' · ') : '') });
   } catch (e) { res.status(500).json({ error: String(e) }); }
 });
 

@@ -165,6 +165,11 @@ a.tel{color:var(--shu);text-decoration:none;font-weight:700}
 .idea-ai .ai-h{font-size:11px;font-weight:900;color:var(--murasaki);margin-bottom:4px}
 .idea-ai.err{background:#FBE9E8;border-color:#EFC9C7}
 .idea-ai.err .ai-h{color:var(--shu-d)}
+.idea-ai.user{background:#F6F1E7;border-style:solid;border-color:var(--line)}
+.idea-ai.user .ai-h{color:var(--sub)}
+.reply-row{display:flex;gap:8px;margin-top:10px}
+.reply-row input{flex:1;min-width:0;border:1.5px solid var(--line);border-radius:12px;padding:9px 12px;font-family:inherit;font-size:13.5px;background:#fff}
+.reply-row button{border:0;background:var(--murasaki);color:#fff;border-radius:12px;padding:0 16px;font-weight:900;font-family:inherit;font-size:15px}
 .idea-actions{display:flex;gap:8px;margin-top:10px;flex-wrap:wrap;align-items:center}
 .idea-actions button{border:1.5px solid var(--line);background:var(--washi);border-radius:10px;font-size:11px;font-weight:900;padding:6px 10px;color:var(--sub);font-family:inherit}
 .ideaform input[type=url],.ideaform input[type=text]{width:100%;border:1.5px solid var(--line);border-radius:12px;padding:9px 12px;font-family:inherit;font-size:13.5px;background:#fff;margin-top:8px}
@@ -956,7 +961,7 @@ loadOvr();
 let IDEAS=[],IDEA_WHO='Flo';
 function compactPlan(){return DAYS.map((d,di)=>{
   const ns=(NOTES[d.d]||[]).map(x=>x.h+' '+x.t+(x.d?' ('+x.d+')':''));
-  return d.d.slice(5)+' · '+d.t+': '+effStops(di).map(s=>s.h+' '+s.n).concat(ns).join(' | ');
+  return d.d.slice(5)+' · '+d.t+': '+effStops(di).map(s=>s.h+' '+s.n+(s.o?' ['+String(s.o).slice(0,80)+']':'')).concat(ns).join(' | ');
 }).join('\n');}
 document.querySelectorAll('#who-row .who').forEach(b=>b.onclick=()=>{
   document.querySelectorAll('#who-row .who').forEach(x=>x.classList.remove('sel'));
@@ -965,30 +970,39 @@ function renderIdeas(){
   const el=$('#idealist');
   renderMapIdeas();
   if(!IDEAS.length){el.innerHTML='<p class="storage-note">Ancora nessuna idea: la prima è la tua.</p>';return;}
-  el.innerHTML=IDEAS.map(i=>'<div class="idea'+(i.done?' done':'')+'">'
+  el.innerHTML=IDEAS.map(i=>{
+    const chat=(i.chat&&i.chat.length)?i.chat:(i.ai?[{r:'a',t:i.ai}]:[]);
+    return '<div class="idea'+(i.done?' done':'')+'">'
     +'<div class="idea-meta"><span>💡 '+esc(i.who||'?')+'</span><span>'+esc((i.ts||'').slice(8,10)+'/'+(i.ts||'').slice(5,7))+'</span></div>'
     +'<div class="idea-t">'+esc(i.text||'')+'</div>'
     +(i.details?'<div class="idea-det">📝 '+esc(i.details)+'</div>':'')
     +(i.img?'<img class="idea-ph" src="/api/ideas/'+i.id+'/img" loading="lazy" alt="foto idea">':'')
-    +(i.ai?'<div class="idea-ai"><div class="ai-h">CLAUDE SUGGERISCE</div>'+esc(i.ai)+'</div>':'')
-    +(!i.ai&&i._err?'<div class="idea-ai err"><div class="ai-h">⚠ SUGGERIMENTO NON ARRIVATO</div>'+esc(i._err)+'</div>':'')
+    +chat.map(m=>m.r==='a'
+      ?'<div class="idea-ai"><div class="ai-h">CLAUDE</div>'+lnk(m.t)+'</div>'
+      :'<div class="idea-ai user"><div class="ai-h">'+esc((m.w||'risposta').toUpperCase())+'</div>'+esc(m.t)+'</div>').join('')
+    +(i._err?'<div class="idea-ai err"><div class="ai-h">⚠ RISPOSTA NON ARRIVATA</div>'+esc(i._err)+'</div>':'')
+    +(chat.length&&chat[chat.length-1].r==='a'?'<div class="reply-row"><input type="text" id="rin-'+i.id+'" placeholder="Rispondi a Claude…" maxlength="1000"><button data-act="reply" data-id="'+i.id+'">➤</button></div>':'')
     +'<div class="idea-actions">'
     +(i.link&&/^https?:\/\//.test(i.link)?'<a class="mapchip" style="margin:0" href="'+esc(i.link)+'" target="_blank" rel="noopener">🗺 Maps</a>':'')
-    +(!i.ai?'<button data-act="ai" data-id="'+i.id+'">🔮 Chiedi a Claude</button>':'')
+    +((!chat.length||chat[chat.length-1].r==='u')?'<button data-act="ai" data-id="'+i.id+'">🔮 '+(chat.length?'Riprova':'Chiedi a Claude')+'</button>':'')
     +'<button data-act="done" data-id="'+i.id+'">'+(i.done?'Riapri':'✓ Fatta')+'</button>'
     +'<button data-act="del" data-id="'+i.id+'">Elimina</button>'
-    +'</div></div>').join('');
+    +'</div></div>';}).join('');
   el.querySelectorAll('button[data-act]').forEach(b=>b.onclick=()=>ideaAction(b.dataset.act,b.dataset.id,b));
 }
+function ideaChat(i){return (i.chat&&i.chat.length)?i.chat:(i.ai?[{r:'a',t:i.ai}]:[]);}
+function lnk(t){return esc(t).replace(/https?:\/\/[^\s<)]+/g,u=>'<a href="'+u+'" target="_blank" rel="noopener" style="color:var(--murasaki);word-break:break-all">'+u.replace(/^https?:\/\/(www\.)?/,'').slice(0,42)+(u.length>50?'…':'')+'</a>');}
 async function askAI(idea){
   idea._err=null;
+  const hist=ideaChat(idea);
   try{
     const r=await fetch('/api/ai',{method:'POST',headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({ideaId:idea.id,text:idea.text,who:idea.who,details:idea.details||'',link:idea.link||'',itinerary:compactPlan()})});
+      body:JSON.stringify({ideaId:idea.id,text:idea.text,who:idea.who,details:idea.details||'',link:idea.link||'',itinerary:compactPlan(),history:hist})});
     let j=null;try{j=await r.json();}catch(e){}
     if(r.ok&&j&&j.suggestion){
+      idea.chat=hist.concat([{r:'a',t:j.suggestion}]);
       idea.ai=j.suggestion;
-      await fetch('/api/ideas/'+idea.id,{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify({ai:j.suggestion})});
+      await fetch('/api/ideas/'+idea.id,{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify({chat:idea.chat})});
     }else if(r.status===404){
       idea._err='Manca ANTHROPIC_API_KEY su Render: japan-2026 → Environment → Add environment variable.';
     }else{
@@ -1004,6 +1018,16 @@ async function ideaAction(act,id,btn){
     await fetch('/api/ideas/'+id,{method:'DELETE'});IDEAS=IDEAS.filter(x=>x.id!==id);renderIdeas();}
   if(act==='done'){idea.done=!idea.done;await fetch('/api/ideas/'+id,{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify({done:idea.done})});renderIdeas();}
   if(act==='ai'){btn.disabled=true;btn.textContent='🔮 Claude ci pensa…';await askAI(idea);renderIdeas();}
+  if(act==='reply'){
+    const inp=document.getElementById('rin-'+id);
+    const t=inp&&inp.value.trim();if(!t)return;
+    idea.chat=ideaChat(idea).concat([{r:'u',t:t,w:IDEA_WHO}]);
+    btn.disabled=true;btn.textContent='…';
+    try{await fetch('/api/ideas/'+id,{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify({chat:idea.chat})});}catch(e){}
+    renderIdeas();
+    await askAI(idea);
+    renderIdeas();
+  }
 }
 async function loadIdeas(){
   await READY;
