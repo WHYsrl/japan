@@ -148,6 +148,23 @@ a.tel{color:var(--shu);text-decoration:none;font-weight:700}
 #bigphrase .bp-close{position:absolute;top:18px;right:18px;border:0;background:var(--ink);color:#fff;
   border-radius:99px;width:40px;height:40px;font-size:18px;font-family:inherit}
 
+/* ── idee ── */
+.ideaform{background:var(--card);border:1.5px solid var(--line);border-radius:16px;padding:14px;margin-bottom:14px}
+.ideaform textarea{width:100%;border:1.5px solid var(--line);border-radius:12px;padding:10px 12px;font-family:inherit;font-size:14px;min-height:72px;resize:vertical;background:#fff}
+.who-row{display:flex;gap:6px;margin:10px 0}
+.who{border:1.5px solid var(--line);background:#fff;border-radius:999px;padding:6px 14px;font-size:13px;font-weight:700;color:var(--sub);font-family:inherit}
+.who.sel{background:var(--murasaki);border-color:var(--murasaki);color:#fff}
+.idea-send{width:100%;border:0;background:var(--murasaki);color:#fff;font-family:inherit;font-weight:900;font-size:15px;border-radius:12px;padding:12px}
+.idea-send:disabled{opacity:.6}
+.idea{background:var(--card);border:1.5px solid var(--line);border-radius:16px;padding:14px;margin-bottom:10px}
+.idea.done{opacity:.55}
+.idea-meta{font-size:11px;color:var(--sub);font-weight:900;margin-bottom:4px;display:flex;justify-content:space-between;gap:8px}
+.idea-t{font-size:14px;font-weight:700;line-height:1.5}
+.idea-ai{margin-top:10px;background:#F4F0FA;border:1.5px dashed #D8CCE8;border-radius:12px;padding:10px 12px;font-size:13px;line-height:1.55;white-space:pre-wrap}
+.idea-ai .ai-h{font-size:11px;font-weight:900;color:var(--murasaki);margin-bottom:4px}
+.idea-actions{display:flex;gap:8px;margin-top:10px}
+.idea-actions button{border:1.5px solid var(--line);background:var(--washi);border-radius:10px;font-size:11px;font-weight:900;padding:6px 10px;color:var(--sub);font-family:inherit}
+
 /* ── bottom nav ── */
 nav{position:fixed;bottom:0;left:0;right:0;z-index:30;background:rgba(255,255,255,.96);backdrop-filter:blur(8px);
   border-top:1px solid var(--line);display:flex;padding-bottom:env(safe-area-inset-bottom)}
@@ -272,6 +289,22 @@ nav button.on{color:var(--shu)}
     </div>
     <p class="storage-note">Card completa JP/EN stampata: 2 copie negli zaini · PDF nella cartella Drive "6 · Celiachia".<br>Salvavita universale: 白ごはんとお刺身だけで大丈夫です (solo riso bianco e sashimi va benissimo).</p>
   </section>
+
+  <!-- IDEE -->
+  <section class="tab" id="tab-idee">
+    <h2 class="v"><span class="bar"></span>Idee di famiglia</h2>
+    <div class="ideaform">
+      <textarea id="idea-text" placeholder="Es. «un salto da Don Quijote», «gelato al matcha», «negozio di coltelli»…"></textarea>
+      <div class="who-row" id="who-row">
+        <button class="who sel" data-w="Flo">Flo</button>
+        <button class="who" data-w="Fili">Fili</button>
+        <button class="who" data-w="Leo">Leo</button>
+      </div>
+      <button class="idea-send" id="idea-send">Invia — Claude suggerisce dove incastrarla 💡</button>
+      <p class="storage-note" id="ideanote">Le idee sono condivise: le vede tutta la famiglia.</p>
+    </div>
+    <div id="idealist"></div>
+  </section>
 </main>
 
 <div id="bigphrase">
@@ -292,11 +325,15 @@ nav button.on{color:var(--shu)}
   <button data-t="tab-cod"><span class="ico">🎫</span>Codici</button>
   <button data-t="tab-ck"><span class="ico">✅</span>Checklist</button>
   <button data-t="tab-gf"><span class="ico">🍙</span>Celiachia</button>
+  <button data-t="tab-idee"><span class="ico">💡</span>Idee</button>
 </nav>
 
 <script>
 /* ───────── DATI ───────── */
 const gm=q=>"https://www.google.com/maps/search/?api=1&query="+encodeURIComponent(q);
+const SHARED=false;
+let SRV=false;
+const READY=(async()=>{try{const r=await fetch('/api/ok',{cache:'no-store'});if(r.ok){const j=await r.json();SRV=true;if(j.shared){const n=document.getElementById('stnote');if(n)n.textContent='Spunte e appunti condivisi da tutta la famiglia (salvati sul server).';}}}catch(e){}})();
 
 const DAYS=[
 {d:"2026-08-10",t:"Partenza",s:"Roma → Doha",st:[
@@ -749,9 +786,6 @@ document.querySelectorAll('.copy').forEach(b=>b.onclick=async()=>{try{await navi
 
 /* checklist con storage persistente */
 let ckState={};const KEY='giappone2026-check';
-const SHARED=false;
-let SRV=false;
-const READY=(async()=>{try{const r=await fetch('/api/ok',{cache:'no-store'});if(r.ok){const j=await r.json();SRV=true;if(j.shared){const n=document.getElementById('stnote');if(n)n.textContent='Spunte e appunti condivisi da tutta la famiglia (salvati sul server).';}}}catch(e){}})();
 async function stGet(k){
   await READY;
   if(SRV){try{const r=await fetch('/api/state/'+encodeURIComponent(k));if(r.ok){const j=await r.json();if(j.value!=null)return j.value;}}catch(e){}}
@@ -785,6 +819,63 @@ window.showQR=function(id,label,sub){
   document.getElementById('qb-s').textContent=sub;
   document.getElementById('qrbig').classList.add('on');
 };
+
+/* ───────── IDEE DI FAMIGLIA ───────── */
+let IDEAS=[],IDEA_WHO='Flo';
+function compactPlan(){return DAYS.map(d=>d.d.slice(5)+' · '+d.t+': '+d.st.map(s=>s.h+' '+s.n).join(' | ')).join('\n');}
+document.querySelectorAll('#who-row .who').forEach(b=>b.onclick=()=>{
+  document.querySelectorAll('#who-row .who').forEach(x=>x.classList.remove('sel'));
+  b.classList.add('sel');IDEA_WHO=b.dataset.w;});
+function renderIdeas(){
+  const el=$('#idealist');
+  if(!IDEAS.length){el.innerHTML='<p class="storage-note">Ancora nessuna idea: la prima è la tua.</p>';return;}
+  el.innerHTML=IDEAS.map(i=>'<div class="idea'+(i.done?' done':'')+'">'
+    +'<div class="idea-meta"><span>💡 '+esc(i.who||'?')+'</span><span>'+esc((i.ts||'').slice(8,10)+'/'+(i.ts||'').slice(5,7))+'</span></div>'
+    +'<div class="idea-t">'+esc(i.text||'')+'</div>'
+    +(i.ai?'<div class="idea-ai"><div class="ai-h">CLAUDE SUGGERISCE</div>'+esc(i.ai)+'</div>':'')
+    +'<div class="idea-actions">'
+    +(!i.ai?'<button data-act="ai" data-id="'+i.id+'">🔮 Chiedi a Claude</button>':'')
+    +'<button data-act="done" data-id="'+i.id+'">'+(i.done?'Riapri':'✓ Fatta')+'</button>'
+    +'<button data-act="del" data-id="'+i.id+'">Elimina</button>'
+    +'</div></div>').join('');
+  el.querySelectorAll('button[data-act]').forEach(b=>b.onclick=()=>ideaAction(b.dataset.act,b.dataset.id,b));
+}
+async function askAI(idea){
+  try{
+    const r=await fetch('/api/ai',{method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({text:idea.text,who:idea.who,itinerary:compactPlan()})});
+    const j=await r.json();
+    if(r.ok&&j.suggestion){
+      idea.ai=j.suggestion;
+      await fetch('/api/ideas/'+idea.id,{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify({ai:j.suggestion})});
+    }else if(r.status===404){$('#ideanote').textContent='Idea salvata ✓ · suggerimenti AI non attivi (manca ANTHROPIC_API_KEY su Render).';}
+  }catch(e){}
+}
+async function ideaAction(act,id,btn){
+  const idea=IDEAS.find(x=>x.id===id);if(!idea)return;
+  if(act==='del'){await fetch('/api/ideas/'+id,{method:'DELETE'});IDEAS=IDEAS.filter(x=>x.id!==id);renderIdeas();}
+  if(act==='done'){idea.done=!idea.done;await fetch('/api/ideas/'+id,{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify({done:idea.done})});renderIdeas();}
+  if(act==='ai'){btn.disabled=true;btn.textContent='🔮 Claude ci pensa…';await askAI(idea);renderIdeas();}
+}
+async function loadIdeas(){
+  await READY;
+  if(!SRV){$('#ideanote').textContent='⚠ Le idee condivise funzionano solo sul sito online.';return;}
+  try{const r=await fetch('/api/ideas',{cache:'no-store'});if(r.ok){IDEAS=await r.json();renderIdeas();}}catch(e){}
+}
+$('#idea-send').onclick=async()=>{
+  const ta=$('#idea-text'),text=ta.value.trim();if(!text)return;
+  const btn=$('#idea-send');btn.disabled=true;btn.textContent='Invio…';
+  try{
+    if(!SRV)throw new Error('offline');
+    const r=await fetch('/api/ideas',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({who:IDEA_WHO,text})});
+    if(!r.ok)throw new Error('server');
+    const idea=await r.json();IDEAS.unshift(idea);ta.value='';renderIdeas();
+    btn.textContent='🔮 Claude ci pensa…';
+    await askAI(idea);renderIdeas();
+  }catch(e){$('#ideanote').textContent='⚠ Non riesco a salvare: le idee funzionano sul sito online.';}
+  btn.disabled=false;btn.textContent='Invia — Claude suggerisce dove incastrarla 💡';
+};
+loadIdeas();
 </script>
 </body>
 </html>
