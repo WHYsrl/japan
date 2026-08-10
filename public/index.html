@@ -189,7 +189,7 @@ a.tel{color:var(--shu);text-decoration:none;font-weight:700}
 .se-box{background:var(--washi);border-radius:20px 20px 0 0;padding:20px 18px calc(20px + env(safe-area-inset-bottom));width:100%;max-width:640px;margin:0 auto}
 .se-t{font-weight:900;font-size:16px;margin-bottom:4px}
 .se-l{display:block;font-size:11px;font-weight:900;color:var(--sub);margin:10px 0 4px}
-.se-box input{width:100%;border:1.5px solid var(--line);border-radius:12px;padding:10px 12px;font-family:inherit;font-size:14px;background:#fff}
+.se-box input,.se-box select{width:100%;border:1.5px solid var(--line);border-radius:12px;padding:10px 12px;font-family:inherit;font-size:14px;background:#fff}
 .se-row{display:flex;gap:8px;margin-top:12px}
 .se-b{flex:1;border:1.5px solid var(--line);border-radius:12px;padding:12px;font-family:inherit;font-weight:900;font-size:13.5px;background:var(--card);color:var(--ink)}
 .se-b.p{background:var(--murasaki);border-color:var(--murasaki);color:#fff}
@@ -378,6 +378,7 @@ nav button.on{color:var(--shu)}
 <div id="stopedit">
   <div class="se-box">
     <div class="se-t">Modifica voce</div>
+    <label class="se-l">Giorno</label><select id="se-d"></select>
     <label class="se-l">Orario</label><input type="time" id="se-h">
     <label class="se-l">Titolo</label><input type="text" id="se-n">
     <label class="se-l">Nota (riga sotto il titolo)</label><input type="text" id="se-o">
@@ -784,7 +785,7 @@ function render(){
     if(TT[n0])h+='<div class="leg">'+TT[n0]+'</div>';
     h+='<div class="stop '+(s.c||'')+(ex?' hasx':'')+'"><div class="s-time">'+s.h+'<span class="wic" data-h="'+s.h+'"></span></div><div class="s-name">'+s.n+
        (s.b?'<span class="badge '+s.b+'">'+(s.b==='cash'?'💴 CONTANTI':s.b==='warn'?'⚠':s.b==='opt'?'⏳ SE AVANZA TEMPO':'✓')+'</span>':'')+
-       (ex?'<span class="xhint">ⓘ</span>':'')+'<button class="sedit'+(s._mod?' did':'')+'" data-si="'+s.si+'">✎</button></div>'+
+       (ex?'<span class="xhint">ⓘ</span>':'')+'<button class="sedit'+(s._mod?' did':'')+'" data-di="'+s._di+'" data-si="'+s.si+'">✎</button></div>'+
        (s.o?'<div class="s-note">'+s.o+'</div>':'')+
        (ex?'<div class="s-x">'+ex+'</div>':'');
     let lk='';
@@ -809,7 +810,7 @@ function render(){
     (NOTES[d.d]=NOTES[d.d]||[]).push({h:$('#nf-h').value||'12:00',t:t,l:l,d:$('#nf-d').value.trim()});
     saveNotes();render();renderMapDays();};
   document.querySelectorAll('.sedit').forEach(b=>b.onclick=e=>{e.stopPropagation();
-    if(b.dataset.ni!=null)openNoteEditor(+b.dataset.ni);else openEditor(sel,+b.dataset.si);});
+    if(b.dataset.ni!=null)openNoteEditor(+b.dataset.ni);else openEditor(b.dataset.di!=null?+b.dataset.di:sel,+b.dataset.si);});
   const rb=document.getElementById('restday');
   if(rb)rb.onclick=async()=>{delK.forEach(k=>delete OVR[k]);await saveOvr();render();renderMapDays();};
   chips.children[sel]&&chips.children[sel].scrollIntoView({inline:'center',block:'nearest'});
@@ -914,22 +915,31 @@ window.showQR=function(id,label,sub){
 const OKEY='giappone2026-ovr';
 let OVR={},ED=null;
 function okey(di,si){return di+'|'+si;}
-function effStops(di){const d=DAYS[di];return d.st.map((s,si)=>{const o=OVR[okey(di,si)];
-  if(o&&o.del)return null;
-  const m=Object.assign({},s,{si:si,_n0:s.n});
-  if(o){m.h=o.h||s.h;m.n=o.n||s.n;if('o' in o)m.o=o.o;m._mod=true;}
-  return m;}).filter(Boolean);}
+function effStops(di){const out=[];
+  DAYS.forEach((dd,odi)=>{dd.st.forEach((s,si)=>{
+    const o=OVR[okey(odi,si)];
+    if(o&&o.del)return;
+    const home=(o&&o.d!=null)?+o.d:odi;
+    if(home!==di)return;
+    const m=Object.assign({},s,{si:si,_di:odi,_n0:s.n});
+    if(o){m.h=o.h||s.h;m.n=o.n||s.n;if('o' in o)m.o=o.o;m._mod=true;}
+    out.push(m);
+  });});
+  return out;}
 async function loadOvr(){await READY;try{const v=await stGet(OKEY);if(v)OVR=JSON.parse(v)||{};}catch(e){}render();renderMapDays();}
 async function saveOvr(){await stSet(OKEY,JSON.stringify(OVR));}
 function seLink(show){$('#se-lk').hidden=!show;$('#se-lkl').hidden=!show;}
+$('#se-d').innerHTML=DAYS.map((d,i)=>'<option value="'+i+'">'+(+d.d.split('-')[2])+'/'+(+d.d.split('-')[1])+' · '+esc(d.t)+'</option>').join('');
 function openEditor(di,si){ED=[di,si];const s=DAYS[di].st[si],o=OVR[okey(di,si)]||{};
+  $('#se-d').value=String((o.d!=null)?+o.d:di);
   $('#se-h').value=o.h||s.h||'12:00';$('#se-n').value=o.n||s.n||'';$('#se-o').value=('o' in o)?o.o:(s.o||'');
   seLink(false);
   const del=$('#se-del');del.textContent='🗑 Elimina voce';del.dataset.arm='';
   $('#se-rest').hidden=!OVR[okey(di,si)];
   $('#stopedit').classList.add('on');}
 function openNoteEditor(ni){const d=DAYS[sel],x=(NOTES[d.d]||[])[ni];if(!x)return;
-  ED={note:ni};
+  ED={note:ni,day:sel};
+  $('#se-d').value=String(sel);
   $('#se-h').value=x.h||'12:00';$('#se-n').value=x.t||'';$('#se-o').value=x.d||'';$('#se-lk').value=x.l||'';
   seLink(true);
   const del=$('#se-del');del.textContent='🗑 Elimina voce';del.dataset.arm='';
@@ -938,18 +948,22 @@ function openNoteEditor(ni){const d=DAYS[sel],x=(NOTES[d.d]||[])[ni];if(!x)retur
 $('#se-x').onclick=()=>$('#stopedit').classList.remove('on');
 $('#stopedit').onclick=e=>{if(e.target.id==='stopedit')$('#stopedit').classList.remove('on');};
 $('#se-save').onclick=async()=>{
+  const nd=+($('#se-d').value||0);
   if(ED&&ED.note!=null){
-    const d=DAYS[sel],x=(NOTES[d.d]||[])[ED.note];
+    const d=DAYS[ED.day],list=NOTES[d.d]||[],x=list[ED.note];
     if(x){x.h=$('#se-h').value||x.h;x.t=$('#se-n').value.trim()||x.t;x.d=$('#se-o').value.trim();
-      let l=$('#se-lk').value.trim();if(l&&!/^https?:\/\//i.test(l))l='https://'+l;x.l=l;}
+      let l=$('#se-lk').value.trim();if(l&&!/^https?:\/\//i.test(l))l='https://'+l;x.l=l;
+      if(nd!==ED.day){list.splice(ED.note,1);(NOTES[DAYS[nd].d]=NOTES[DAYS[nd].d]||[]).push(x);}}
     $('#stopedit').classList.remove('on');await saveNotes();render();renderMapDays();return;
   }
   const di=ED[0],si=ED[1],s=DAYS[di].st[si];
-  OVR[okey(di,si)]={h:$('#se-h').value||s.h,n:$('#se-n').value.trim()||s.n,o:$('#se-o').value.trim()};
+  const o={h:$('#se-h').value||s.h,n:$('#se-n').value.trim()||s.n,o:$('#se-o').value.trim()};
+  if(nd!==di)o.d=nd;
+  OVR[okey(di,si)]=o;
   $('#stopedit').classList.remove('on');await saveOvr();render();renderMapDays();};
 $('#se-del').onclick=async()=>{const b=$('#se-del');
   if(b.dataset.arm!=='1'){b.dataset.arm='1';b.textContent='Sicuro? Tocca ancora';return;}
-  if(ED&&ED.note!=null){const d=DAYS[sel];(NOTES[d.d]||[]).splice(ED.note,1);
+  if(ED&&ED.note!=null){const d=DAYS[ED.day];(NOTES[d.d]||[]).splice(ED.note,1);
     $('#stopedit').classList.remove('on');await saveNotes();render();renderMapDays();return;}
   OVR[okey(ED[0],ED[1])]={del:1};
   $('#stopedit').classList.remove('on');await saveOvr();render();renderMapDays();};
