@@ -94,6 +94,7 @@ a.lnk.tik{border-color:#E0D3E6;background:#F6F1F8;color:var(--murasaki)}
 .badge{display:inline-block;font-size:11px;font-weight:900;border-radius:6px;padding:2px 7px;margin-left:6px;vertical-align:2px}
 .badge.cash{background:#FDF1E3;color:#A56A1F}.badge.warn{background:#FBE9E8;color:var(--shu-d)}
 .badge.ok{background:#EAF4ED;color:var(--matcha)}
+.badge.book{background:#E7EFF8;color:#33628C}
 .badge.opt{background:#EEE9F5;color:var(--murasaki)}
 .stop.opz::before{border-style:dashed;border-color:var(--murasaki)}
 .stop.opz .s-time{color:var(--murasaki)}
@@ -383,6 +384,15 @@ nav button.on{color:var(--shu)}
     <label class="se-l">Titolo</label><input type="text" id="se-n">
     <label class="se-l">Nota (riga sotto il titolo)</label><input type="text" id="se-o">
     <label class="se-l" id="se-lkl">Link Google Maps</label><input type="text" id="se-lk">
+    <label class="se-l">Etichetta</label>
+    <div class="who-row" id="se-tags" style="flex-wrap:wrap">
+      <button class="who" data-b="">—</button>
+      <button class="who" data-b="book">📌 Da prenotare</button>
+      <button class="who" data-b="warn">⚠ Attenzione</button>
+      <button class="who" data-b="ok">✓ Confermato</button>
+      <button class="who" data-b="opt">⏳ Se avanza tempo</button>
+      <button class="who" data-b="cash">💴 Contanti</button>
+    </div>
     <div class="se-row">
       <button id="se-save" class="se-b p">💾 Salva</button>
       <button id="se-del" class="se-b r">🗑 Elimina voce</button>
@@ -770,11 +780,11 @@ function render(){
     (FLIGHTS[d.d]?'<div class="fstat" id="fstat"></div>':'')+
     (CITY[d.d]?'<div style="margin-top:8px"><a class="lnk map" target="_blank" href="https://www.google.com/search?q='+encodeURIComponent('meteo '+CITY[d.d][0]+' oggi orario')+'">🌤 Meteo '+CITY[d.d][0]+' ora per ora</a></div>':'')+
     '</div><div class="tl">';
-  const notes=(NOTES[d.d]||[]).map((x,i)=>({h:x.h,n:x.t,l:x.l,dd:x.d,un:true,ni:i}));
+  const notes=(NOTES[d.d]||[]).map((x,i)=>({h:x.h,n:x.t,l:x.l,dd:x.d,b:x.b,un:true,ni:i}));
   const items=effStops(sel).concat(notes).sort((a,b)=>a.h<b.h?-1:a.h>b.h?1:0);
   items.forEach(s=>{
     if(s.un){
-      h+='<div class="stop un"><div class="s-time">'+s.h+'</div><div class="s-name">📝 '+esc(s.n)+'<button class="sedit" data-ni="'+s.ni+'">✎</button><button class="ndel" data-i="'+s.ni+'">✕</button></div>'
+      h+='<div class="stop un"><div class="s-time">'+s.h+'</div><div class="s-name">📝 '+esc(s.n)+(s.b?'<span class="badge '+s.b+'">'+bTxt(s.b)+'</span>':'')+'<button class="sedit" data-ni="'+s.ni+'">✎</button><button class="ndel" data-i="'+s.ni+'">✕</button></div>'
         +(s.dd?'<div class="s-note">'+esc(s.dd)+'</div>':'')
         +(s.l&&/^https?:\/\//.test(s.l)?'<div class="s-links"><a class="lnk map" target="_blank" rel="noopener" href="'+esc(s.l)+'">📍 Maps</a></div>':'')
         +'</div>';
@@ -784,7 +794,7 @@ function render(){
     const ex=EXTRAS[n0];
     if(TT[n0])h+='<div class="leg">'+TT[n0]+'</div>';
     h+='<div class="stop '+(s.c||'')+(ex?' hasx':'')+'"><div class="s-time">'+s.h+'<span class="wic" data-h="'+s.h+'"></span></div><div class="s-name">'+s.n+
-       (s.b?'<span class="badge '+s.b+'">'+(s.b==='cash'?'💴 CONTANTI':s.b==='warn'?'⚠':s.b==='opt'?'⏳ SE AVANZA TEMPO':'✓')+'</span>':'')+
+       (s.b?'<span class="badge '+s.b+'">'+bTxt(s.b)+'</span>':'')+
        (ex?'<span class="xhint">ⓘ</span>':'')+'<button class="sedit'+(s._mod?' did':'')+'" data-di="'+s._di+'" data-si="'+s.si+'">✎</button></div>'+
        (s.o?'<div class="s-note">'+s.o+'</div>':'')+
        (ex?'<div class="s-x">'+ex+'</div>':'');
@@ -913,8 +923,11 @@ window.showQR=function(id,label,sub){
 
 /* ───────── MODIFICA VOCI ITINERARIO E INCASTRI (condivisa) ───────── */
 const OKEY='giappone2026-ovr';
-let OVR={},ED=null;
+let OVR={},ED=null,SE_B='';
 function okey(di,si){return di+'|'+si;}
+function bTxt(b){return b==='cash'?'💴 CONTANTI':b==='warn'?'⚠':b==='opt'?'⏳ SE AVANZA TEMPO':b==='book'?'📌 DA PRENOTARE':'✓';}
+function seTag(v){SE_B=v||'';document.querySelectorAll('#se-tags .who').forEach(x=>x.classList.toggle('sel',(x.dataset.b||'')===SE_B));}
+document.querySelectorAll('#se-tags .who').forEach(b=>b.onclick=()=>seTag(b.dataset.b));
 function effStops(di){const out=[];
   DAYS.forEach((dd,odi)=>{dd.st.forEach((s,si)=>{
     const o=OVR[okey(odi,si)];
@@ -922,7 +935,7 @@ function effStops(di){const out=[];
     const home=(o&&o.d!=null)?+o.d:odi;
     if(home!==di)return;
     const m=Object.assign({},s,{si:si,_di:odi,_n0:s.n});
-    if(o){m.h=o.h||s.h;m.n=o.n||s.n;if('o' in o)m.o=o.o;m._mod=true;}
+    if(o){m.h=o.h||s.h;m.n=o.n||s.n;if('o' in o)m.o=o.o;if('b' in o){if(o.b)m.b=o.b;else delete m.b;}m._mod=true;}
     out.push(m);
   });});
   return out;}
@@ -933,6 +946,7 @@ $('#se-d').innerHTML=DAYS.map((d,i)=>'<option value="'+i+'">'+(+d.d.split('-')[2
 function openEditor(di,si){ED=[di,si];const s=DAYS[di].st[si],o=OVR[okey(di,si)]||{};
   $('#se-d').value=String((o.d!=null)?+o.d:di);
   $('#se-h').value=o.h||s.h||'12:00';$('#se-n').value=o.n||s.n||'';$('#se-o').value=('o' in o)?o.o:(s.o||'');
+  seTag(('b' in o)?o.b:(s.b||''));
   seLink(false);
   const del=$('#se-del');del.textContent='🗑 Elimina voce';del.dataset.arm='';
   $('#se-rest').hidden=!OVR[okey(di,si)];
@@ -941,6 +955,7 @@ function openNoteEditor(ni){const d=DAYS[sel],x=(NOTES[d.d]||[])[ni];if(!x)retur
   ED={note:ni,day:sel};
   $('#se-d').value=String(sel);
   $('#se-h').value=x.h||'12:00';$('#se-n').value=x.t||'';$('#se-o').value=x.d||'';$('#se-lk').value=x.l||'';
+  seTag(x.b||'');
   seLink(true);
   const del=$('#se-del');del.textContent='🗑 Elimina voce';del.dataset.arm='';
   $('#se-rest').hidden=true;
@@ -951,13 +966,13 @@ $('#se-save').onclick=async()=>{
   const nd=+($('#se-d').value||0);
   if(ED&&ED.note!=null){
     const d=DAYS[ED.day],list=NOTES[d.d]||[],x=list[ED.note];
-    if(x){x.h=$('#se-h').value||x.h;x.t=$('#se-n').value.trim()||x.t;x.d=$('#se-o').value.trim();
+    if(x){x.h=$('#se-h').value||x.h;x.t=$('#se-n').value.trim()||x.t;x.d=$('#se-o').value.trim();x.b=SE_B;
       let l=$('#se-lk').value.trim();if(l&&!/^https?:\/\//i.test(l))l='https://'+l;x.l=l;
       if(nd!==ED.day){list.splice(ED.note,1);(NOTES[DAYS[nd].d]=NOTES[DAYS[nd].d]||[]).push(x);}}
     $('#stopedit').classList.remove('on');await saveNotes();render();renderMapDays();return;
   }
   const di=ED[0],si=ED[1],s=DAYS[di].st[si];
-  const o={h:$('#se-h').value||s.h,n:$('#se-n').value.trim()||s.n,o:$('#se-o').value.trim()};
+  const o={h:$('#se-h').value||s.h,n:$('#se-n').value.trim()||s.n,o:$('#se-o').value.trim(),b:SE_B};
   if(nd!==di)o.d=nd;
   OVR[okey(di,si)]=o;
   $('#stopedit').classList.remove('on');await saveOvr();render();renderMapDays();};
