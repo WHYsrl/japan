@@ -4,13 +4,43 @@ const path = require('path');
 const app = express();
 app.use(express.json({ limit: '8mb' }));
 
-/* ── Basic auth opzionale (imposta APP_PASSWORD su Render) ── */
+/* ── Accesso con "ricordami" (cookie 6 mesi) + Basic auth di riserva ── */
 if (process.env.APP_PASSWORD) {
+  const crypto = require('crypto');
   const want = 'Basic ' + Buffer.from('japan:' + process.env.APP_PASSWORD).toString('base64');
+  const tok = crypto.createHmac('sha256', process.env.APP_PASSWORD).update('japan2026-ricordami').digest('hex');
+  const setCookie = res => res.append('Set-Cookie', 'jauth=' + tok + '; Max-Age=15552000; Path=/; HttpOnly; Secure; SameSite=Lax');
+  const hasCookie = req => ((req.headers.cookie || '').match(/(?:^|;\s*)jauth=([^;]+)/) || [])[1] === tok;
+  app.use(express.urlencoded({ extended: false }));
+  app.post('/login', (req, res) => {
+    if (((req.body && req.body.password) || '') === process.env.APP_PASSWORD) {
+      setCookie(res);
+      return res.redirect('/');
+    }
+    res.redirect('/?e=1');
+  });
   app.use((req, res, next) => {
-    if ((req.headers.authorization || '') === want) return next();
-    res.set('WWW-Authenticate', 'Basic realm="japan2026"');
-    res.status(401).send('Auth richiesta');
+    if (hasCookie(req)) return next();
+    if ((req.headers.authorization || '') === want) { setCookie(res); return next(); }
+    if (req.path.startsWith('/api/')) return res.status(401).json({ error: 'auth' });
+    res.status(401).send('<!DOCTYPE html><html lang="it"><head><meta charset="UTF-8">'
+      + '<meta name="viewport" content="width=device-width, initial-scale=1">'
+      + '<title>日本 2026 · Accesso</title><style>'
+      + 'body{font-family:-apple-system,"Zen Maru Gothic",sans-serif;background:#FBF7EF;color:#2B2320;display:grid;place-items:center;min-height:100vh;margin:0}'
+      + '.box{background:#fff;border:1.5px solid #E7DFD2;border-radius:20px;padding:32px 26px;width:min(88vw,340px);text-align:center}'
+      + '.dot{width:52px;height:52px;border-radius:50%;background:#C73E3A;margin:0 auto 14px}'
+      + 'h1{font-size:19px;margin:0 0 4px}p{font-size:13px;color:#7A6F63;margin:0 0 18px}'
+      + 'input{width:100%;box-sizing:border-box;border:1.5px solid #E7DFD2;border-radius:12px;padding:12px;font-size:16px;font-family:inherit;text-align:center}'
+      + 'button{width:100%;border:0;background:#C73E3A;color:#fff;border-radius:12px;padding:13px;font-size:15px;font-weight:700;font-family:inherit;margin-top:10px}'
+      + '.err{color:#A32F2C;font-size:13px;font-weight:700;margin:10px 0 0}'
+      + '.hint{font-size:11.5px;color:#7A6F63;margin-top:14px}'
+      + '</style></head><body><form class="box" method="POST" action="/login">'
+      + '<div class="dot"></div><h1>日本 2026 · Bonifati</h1><p>Il viaggio di famiglia</p>'
+      + '<input type="password" name="password" placeholder="Password di famiglia" autofocus autocomplete="current-password">'
+      + '<button type="submit">Entra</button>'
+      + (req.query && req.query.e ? '<div class="err">Password sbagliata, riprova.</div>' : '')
+      + '<div class="hint">Questo dispositivo resterà collegato per 6 mesi.</div>'
+      + '</form></body></html>');
   });
 }
 
@@ -198,5 +228,7 @@ app.post('/api/ai', async (req, res) => {
   } catch (e) { res.status(500).json({ error: String(e) }); }
 });
 
-app.use(express.static(path.join(__dirname, 'public')));
+app.use(express.static(path.join(__dirname, 'public'), {
+  setHeaders: (res, p) => { if (p.endsWith('.html')) res.set('Cache-Control', 'no-cache'); }
+}));
 app.listen(process.env.PORT || 3000, () => console.log('Giappone 2026 in ascolto'));
