@@ -346,7 +346,7 @@ nav button.on{color:var(--shu)}
         <button class="who" data-w="Fili">Fili</button>
         <button class="who" data-w="Leo">Leo</button>
       </div>
-      <button class="idea-send" id="idea-send">Invia — Claude suggerisce dove incastrarla 💡</button>
+      <button class="idea-send" id="idea-send">Invia — Yoshi suggerisce dove incastrarla 💡</button>
       <p class="storage-note" id="ideanote">Le idee sono condivise: le vede tutta la famiglia.</p>
     </div>
     <div id="idealist"></div>
@@ -1009,13 +1009,13 @@ function renderIdeas(){
     +(i.details?'<div class="idea-det">📝 '+esc(i.details)+'</div>':'')
     +(i.img?'<img class="idea-ph" src="/api/ideas/'+i.id+'/img" loading="lazy" alt="foto idea">':'')
     +chat.map(m=>m.r==='a'
-      ?'<div class="idea-ai"><div class="ai-h">CLAUDE</div>'+lnk(m.t)+'</div>'
+      ?'<div class="idea-ai"><div class="ai-h">YOSHI</div>'+lnk(m.t)+'</div>'
       :'<div class="idea-ai user"><div class="ai-h">'+esc((m.w||'risposta').toUpperCase())+'</div>'+esc(m.t)+'</div>').join('')
     +(i._err?'<div class="idea-ai err"><div class="ai-h">⚠ RISPOSTA NON ARRIVATA</div>'+esc(i._err)+'</div>':'')
-    +(chat.length&&chat[chat.length-1].r==='a'?'<div class="reply-row"><input type="text" id="rin-'+i.id+'" placeholder="Rispondi a Claude…" maxlength="1000"><button data-act="reply" data-id="'+i.id+'">➤</button></div>':'')
+    +(chat.length&&chat[chat.length-1].r==='a'?'<div class="reply-row"><input type="text" id="rin-'+i.id+'" placeholder="Rispondi a Yoshi…" maxlength="1000"><button data-act="reply" data-id="'+i.id+'">➤</button></div>':'')
     +'<div class="idea-actions">'
     +(i.link&&/^https?:\/\//.test(i.link)?'<a class="mapchip" style="margin:0" href="'+esc(i.link)+'" target="_blank" rel="noopener">🗺 Maps</a>':'')
-    +((!chat.length||chat[chat.length-1].r==='u')?'<button data-act="ai" data-id="'+i.id+'">🔮 '+(chat.length?'Riprova':'Chiedi a Claude')+'</button>':'')
+    +((!chat.length||chat[chat.length-1].r==='u')?'<button data-act="ai" data-id="'+i.id+'">🔮 '+(chat.length?'Riprova':'Chiedi a Yoshi')+'</button>':'')
     +'<button data-act="done" data-id="'+i.id+'">'+(i.done?'Riapri':'✓ Fatta')+'</button>'
     +'<button data-act="del" data-id="'+i.id+'">Elimina</button>'
     +'</div></div>';}).join('');
@@ -1048,7 +1048,7 @@ async function ideaAction(act,id,btn){
       setTimeout(()=>{if(btn.isConnected){btn.dataset.arm='';btn.textContent='Elimina';btn.style.color='';}},3000);return;}
     await fetch('/api/ideas/'+id,{method:'DELETE'});IDEAS=IDEAS.filter(x=>x.id!==id);renderIdeas();}
   if(act==='done'){idea.done=!idea.done;await fetch('/api/ideas/'+id,{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify({done:idea.done})});renderIdeas();}
-  if(act==='ai'){btn.disabled=true;btn.textContent='🔮 Claude ci pensa…';await askAI(idea);renderIdeas();}
+  if(act==='ai'){btn.disabled=true;btn.textContent='🔮 Yoshi ci pensa…';await askAI(idea);renderIdeas();}
   if(act==='reply'){
     const inp=document.getElementById('rin-'+id);
     const t=inp&&inp.value.trim();if(!t)return;
@@ -1099,10 +1099,10 @@ $('#idea-send').onclick=async()=>{
     const idea=await r.json();IDEAS.unshift(idea);
     ta.value='';$('#idea-link').value='';$('#idea-det').value='';$('#idea-prev-x').onclick();
     renderIdeas();
-    btn.textContent='🔮 Claude ci pensa…';
+    btn.textContent='🔮 Yoshi ci pensa…';
     await askAI(idea);renderIdeas();
   }catch(e){$('#ideanote').textContent='⚠ Non riesco a salvare: le idee funzionano sul sito online.';}
-  btn.disabled=false;btn.textContent='Invia — Claude suggerisce dove incastrarla 💡';
+  btn.disabled=false;btn.textContent='Invia — Yoshi suggerisce dove incastrarla 💡';
 };
 loadIdeas();
 
