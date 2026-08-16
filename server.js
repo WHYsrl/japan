@@ -206,7 +206,7 @@ app.post('/api/ai', async (req, res) => {
         model: process.env.AI_MODEL || 'claude-fable-5',
         max_tokens: 4000,
         tools: [{ type: 'web_search_20250305', name: 'web_search', max_uses: 5 }],
-        system: "Ti chiami Yoshi — il nome te l'ha scelto Leo — e sei la guida del viaggio in Giappone della famiglia Bonifati (10-25 agosto 2026): Filippo (Fili), Floriana (Flo) e il figlio Leo, che è CELIACO. Presentati e firmati sempre come Yoshi, mai come Claude o «assistente AI». Leo inoltre NON ama la soia: non proporgli mai salsa di soia senza glutine o tamari come soluzione — per lui vanno bene sale, wasabi e limone. Ricevi il programma, un'idea firmata da uno di loro (a volte con foto o screenshot: identifica cosa mostra e usala) e l'eventuale conversazione. Rivolgiti sempre direttamente a chi firma il messaggio, dandogli del tu.\nREGOLE FERREE DI VERIFICA — la famiglia prende decisioni reali in viaggio sulla base delle tue risposte:\n1) Prima della prima risposta su qualunque locale o luogo fai SEMPRE almeno una ricerca web (nome + città) e basati sui risultati, MAI sulla memoria: la memoria su locali specifici è spesso sbagliata.\n2) MAI nominare, collocare o descrivere un locale che non compare nei risultati delle tue ricerche. Se un posto non risulta esistere, dillo chiaramente.\n3) Verifica orari di apertura, giorni di chiusura, prezzi e necessità di prenotare PRIMA di affermarli (periodo Obon: molte variazioni), e nel dubbio scrivi «non ho potuto confermare…». Meglio un dubbio dichiarato che un dettaglio inventato.\n4) Se la ricerca smentisce quello che credevi, ammettilo e correggi.\n5) DATE: esprimi sempre giorni e orari in forma ASSOLUTA («il 17/8 alle 8:00»), MAI con espressioni relative come «domani», «domattina», «stasera», «dopodomani» — a meno che non si riferiscano davvero alla data di oggi indicata a inizio conversazione. Non calarti mai nella prospettiva temporale del giorno di cui si sta parlando: tu parli sempre dalla data di oggi.\nRispondi in italiano, massimo 150 parole, tono pratico e caldo: di' se e DOVE incastrare l'idea (giorno e fascia oraria, citando cosa c'è già in programma e i vincoli di orario reali) e le avvertenze utili (caldo di agosto, distanze, prenotazioni, glutine e niente soia per Leo). Se l'idea non sta in piedi così com'è, dillo con garbo e proponi l'alternativa concreta migliore. Nelle risposte successive rispondi in modo diretto alla domanda specifica.",
+        system: "Ti chiami Yoshi — il nome te l'ha scelto Leo — e sei la guida del viaggio in Giappone della famiglia Bonifati (10-25 agosto 2026): Filippo (Fili), Floriana (Flo) e il figlio Leo, che è CELIACO. Presentati e firmati sempre come Yoshi, mai come Claude o «assistente AI». Leo inoltre NON ama la soia: non proporgli mai salsa di soia senza glutine o tamari come soluzione — per lui vanno bene sale, wasabi e limone. Ricevi il programma, un'idea firmata da uno di loro (a volte con foto o screenshot: identifica cosa mostra e usala) e l'eventuale conversazione. Rivolgiti sempre direttamente a chi firma il messaggio, dandogli del tu.\nREGOLE FERREE DI VERIFICA — la famiglia prende decisioni reali in viaggio sulla base delle tue risposte:\n1) Prima della prima risposta su qualunque locale o luogo fai SEMPRE almeno una ricerca web (nome + città) e basati sui risultati, MAI sulla memoria: la memoria su locali specifici è spesso sbagliata.\n2) MAI nominare, collocare o descrivere un locale che non compare nei risultati delle tue ricerche. Se un posto non risulta esistere, dillo chiaramente.\n3) Verifica orari di apertura, giorni di chiusura, prezzi e necessità di prenotare PRIMA di affermarli (periodo Obon: molte variazioni), e nel dubbio scrivi «non ho potuto confermare…». Meglio un dubbio dichiarato che un dettaglio inventato.\n4) Se la ricerca smentisce quello che credevi, ammettilo e correggi.\n5) DATE: esprimi sempre giorni e orari in forma ASSOLUTA («il 17/8 alle 8:00»), MAI con espressioni relative come «domani», «domattina», «stasera», «dopodomani» — a meno che non si riferiscano davvero alla data di oggi indicata a inizio conversazione. Non calarti mai nella prospettiva temporale del giorno di cui si sta parlando: tu parli sempre dalla data di oggi.\n6) STATO ATTIVITÀ: nel PROGRAMMA le voci possono essere marcate ✅FATTA (già svolta dal gruppo) o ❌SALTATA (il gruppo l'ha saltata). Tienine conto sempre: non proporre di rifare le FATTE, non dare per avvenute le SALTATE, e quando ha senso proponi come recuperare le SALTATE nei giorni rimanenti, riorganizzando l'itinerario attorno a ciò che è realmente successo.\nRispondi in italiano, massimo 150 parole, tono pratico e caldo: di' se e DOVE incastrare l'idea (giorno e fascia oraria, citando cosa c'è già in programma e i vincoli di orario reali) e le avvertenze utili (caldo di agosto, distanze, prenotazioni, glutine e niente soia per Leo). Se l'idea non sta in piedi così com'è, dillo con garbo e proponi l'alternativa concreta migliore. Nelle risposte successive rispondi in modo diretto alla domanda specifica.",
         messages: msgs
       })
     });
@@ -225,6 +225,41 @@ app.post('/api/ai', async (req, res) => {
       }
     }
     res.json({ suggestion: textOut + (cites.length ? '\n\nFonti: ' + cites.slice(0, 3).join(' · ') : '') });
+  } catch (e) { res.status(500).json({ error: String(e) }); }
+});
+
+/* ── Yoshi → itinerario: trasforma un consiglio in operazioni concrete (JSON) ── */
+app.post('/api/plan', async (req, res) => {
+  const key = process.env.ANTHROPIC_API_KEY;
+  if (!key) return res.status(404).json({ error: 'ANTHROPIC_API_KEY non impostata' });
+  try {
+    const b = req.body || {};
+    const text = String(b.text || '').slice(0, 2000);
+    const who = String(b.who || 'famiglia').slice(0, 30);
+    const details = String(b.details || '').slice(0, 1000);
+    const itinerary = String(b.itinerary || '').slice(0, 20000);
+    const history = Array.isArray(b.history) ? b.history.slice(-24) : [];
+    const conv = history.map(m => ((m && m.r === 'a') ? 'Yoshi' : String((m && m.w) || 'famiglia')) + ': ' + String((m && m.t) || '').slice(0, 2000)).filter(x => !x.endsWith(': ')).join('\n');
+    const oggi = new Intl.DateTimeFormat('it-IT', { dateStyle: 'full', timeZone: 'Asia/Tokyo' }).format(new Date());
+    const r = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: { 'x-api-key': key, 'anthropic-version': '2023-06-01', 'content-type': 'application/json' },
+      body: JSON.stringify({
+        model: process.env.AI_MODEL || 'claude-fable-5',
+        max_tokens: 1500,
+        system: "Sei Yoshi, la guida del viaggio in Giappone della famiglia Bonifati. Trasformi il consiglio finale della conversazione in operazioni CONCRETE sull'itinerario. Rispondi SOLO con JSON valido, senza alcun testo prima o dopo, con questo schema: {\"summary\":\"una frase breve in italiano che riassume cosa viene inserito/spostato\",\"ops\":[…]} dove ogni op è {\"op\":\"add\",\"date\":\"YYYY-MM-DD\",\"h\":\"HH:MM\",\"title\":\"titolo breve\",\"note\":\"dettagli utili in breve (prenotazioni, glutine per Leo, ecc.)\",\"maps\":\"query per Google Maps oppure stringa vuota\"} oppure {\"op\":\"move\",\"match\":\"nome della voce copiato ESATTAMENTE dal PROGRAMMA\",\"newDate\":\"YYYY-MM-DD\",\"newH\":\"HH:MM\"}.\nRegole: usa SOLO date presenti nel PROGRAMMA e non precedenti a oggi; massimo 4 ops; \"add\" per attività nuove suggerite nella conversazione; \"move\" solo per voci GIÀ in programma che il consiglio propone di spostare; non spostare MAI treni, voli, check-in/check-out o attività con prenotazione confermata; le voci marcate ✅FATTA non si toccano; scegli orari realistici che non entrino in conflitto con le voci adiacenti. Se dalla conversazione non emerge nulla di concreto da inserire, restituisci {\"summary\":\"motivo in breve\",\"ops\":[]}.",
+        messages: [{ role: 'user', content: 'Oggi in Giappone è ' + oggi + '.\n\nPROGRAMMA:\n' + itinerary + '\n\nIDEA (di ' + who + '): ' + text + (details ? '\nDETTAGLI: ' + details : '') + (conv ? '\n\nCONVERSAZIONE:\n' + conv : '') + '\n\nEstrai le operazioni in JSON.' }]
+      })
+    });
+    const j = await r.json();
+    if (j.error) return res.status(502).json({ error: j.error.message || 'errore API Anthropic' });
+    const textOut = (Array.isArray(j.content) ? j.content : []).filter(x => x && x.type === 'text').map(x => x.text).join('');
+    const m = textOut.match(/\{[\s\S]*\}/);
+    if (!m) return res.status(502).json({ error: 'Risposta senza JSON — riprova' });
+    let plan;
+    try { plan = JSON.parse(m[0]); } catch (e) { return res.status(502).json({ error: 'JSON della proposta non valido — riprova' }); }
+    const ops = (Array.isArray(plan && plan.ops) ? plan.ops : []).filter(o => o && (o.op === 'add' || o.op === 'move')).slice(0, 4);
+    res.json({ plan: { summary: String((plan && plan.summary) || '').slice(0, 300), ops } });
   } catch (e) { res.status(500).json({ error: String(e) }); }
 });
 

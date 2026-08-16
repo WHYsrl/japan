@@ -184,6 +184,16 @@ a.tel{color:var(--shu);text-decoration:none;font-weight:700}
 /* ── modifica voci itinerario ── */
 .sedit{border:0;background:none;font-family:inherit;font-size:13px;margin-left:6px;color:var(--sub);opacity:.4;vertical-align:1px;padding:0 3px}
 .sedit.did{color:var(--murasaki);opacity:1}
+.sact{border:1.5px solid var(--line);background:#fff;border-radius:999px;font-family:inherit;font-size:10.5px;font-weight:900;padding:3px 9px;margin-left:6px;color:var(--sub);vertical-align:1px}
+.sact.d{background:#EAF4ED;border-color:#C8DFD0;color:var(--matcha)}
+.sact.k{background:#FBE9E8;border-color:#EFC9C7;color:var(--shu-d)}
+.stop.sskip .s-name{opacity:.55}
+.stop.sskip .s-name,.stop.sskip .s-note{text-decoration:line-through}
+.stop.sdone .s-time::after{content:" ✓";color:var(--matcha);font-weight:900}
+#planconf{position:fixed;inset:0;background:rgba(43,35,32,.45);z-index:60;display:none;align-items:flex-end}
+#planconf.on{display:flex}
+.pc-op{border:1.5px solid var(--line);background:#fff;border-radius:12px;padding:9px 12px;margin-bottom:8px;font-size:13px;line-height:1.45}
+.pc-op .bad{color:var(--shu-d);font-weight:900}
 .restday{display:block;width:100%;border:1.5px dashed var(--line);background:none;border-radius:12px;padding:9px;margin:6px 0;font-family:inherit;font-size:12px;font-weight:700;color:var(--sub)}
 #stopedit{position:fixed;inset:0;background:rgba(43,35,32,.45);z-index:60;display:none;align-items:flex-end}
 #stopedit.on{display:flex}
@@ -374,6 +384,18 @@ nav button.on{color:var(--shu)}
   <img id="qb-img" src="" alt="QR">
   <div class="qbl" id="qb-l"></div>
   <div class="qbs" id="qb-s"></div>
+</div>
+
+<div id="planconf">
+  <div class="se-box">
+    <div class="se-t">📌 Proposta di Yoshi</div>
+    <div id="pc-sum" style="font-size:13.5px;color:var(--sub);margin:6px 0 12px"></div>
+    <div id="pc-ops"></div>
+    <div class="se-row">
+      <button id="pc-ok" class="se-b g">✓ Conferma e inserisci</button>
+      <button id="pc-no" class="se-b">Annulla</button>
+    </div>
+  </div>
 </div>
 
 <div id="stopedit">
@@ -782,11 +804,12 @@ function render(){
     (FLIGHTS[d.d]?'<div class="fstat" id="fstat"></div>':'')+
     (CITY[d.d]?'<div style="margin-top:8px"><a class="lnk map" target="_blank" href="https://www.google.com/search?q='+encodeURIComponent('meteo '+CITY[d.d][0]+' oggi orario')+'">🌤 Meteo '+CITY[d.d][0]+' ora per ora</a></div>':'')+
     '</div><div class="tl">';
-  const notes=(NOTES[d.d]||[]).map((x,i)=>({h:x.h,n:x.t,l:x.l,dd:x.d,b:x.b,un:true,ni:i}));
+  const notes=(NOTES[d.d]||[]).map((x,i)=>({h:x.h,n:x.t,l:x.l,dd:x.d,b:x.b,un:true,ni:i,id:x.id}));
   const items=effStops(sel).concat(notes).sort((a,b)=>a.h<b.h?-1:a.h>b.h?1:0);
   items.forEach(s=>{
     if(s.un){
-      h+='<div class="stop un"><div class="s-time">'+s.h+'</div><div class="s-name">📝 '+esc(s.n)+(s.b?'<span class="badge '+s.b+'">'+bTxt(s.b)+'</span>':'')+'<button class="sedit" data-ni="'+s.ni+'">✎</button><button class="ndel" data-i="'+s.ni+'">✕</button></div>'
+      const ak='n:'+s.id,av=ACT[ak];
+      h+='<div class="stop un'+(av==='done'?' sdone':av==='skip'?' sskip':'')+'"><div class="s-time">'+s.h+'</div><div class="s-name">📝 '+esc(s.n)+(s.b?'<span class="badge '+s.b+'">'+bTxt(s.b)+'</span>':'')+'<button class="sedit" data-ni="'+s.ni+'">✎</button><button class="ndel" data-i="'+s.ni+'">✕</button>'+(s.id?actBtn(ak):'')+'</div>'
         +(s.dd?'<div class="s-note">'+esc(s.dd)+'</div>':'')
         +(s.l&&/^https?:\/\//.test(s.l)?'<div class="s-links"><a class="lnk map" target="_blank" rel="noopener" href="'+esc(s.l)+'">📍 Maps</a></div>':'')
         +'</div>';
@@ -794,10 +817,11 @@ function render(){
     }
     const n0=s._n0||s.n;
     const ex=EXTRAS[n0];
+    const ak='s:'+s._di+'|'+s.si,av=ACT[ak];
     if(TT[n0])h+='<div class="leg">'+TT[n0]+'</div>';
-    h+='<div class="stop '+(s.c||'')+(ex?' hasx':'')+'"><div class="s-time">'+s.h+'<span class="wic" data-h="'+s.h+'"></span></div><div class="s-name">'+s.n+
+    h+='<div class="stop '+(s.c||'')+(ex?' hasx':'')+(av==='done'?' sdone':av==='skip'?' sskip':'')+'"><div class="s-time">'+s.h+'<span class="wic" data-h="'+s.h+'"></span></div><div class="s-name">'+s.n+
        (s.b?'<span class="badge '+s.b+'">'+bTxt(s.b)+'</span>':'')+
-       (ex?'<span class="xhint">ⓘ</span>':'')+'<button class="sedit'+(s._mod?' did':'')+'" data-di="'+s._di+'" data-si="'+s.si+'">✎</button></div>'+
+       (ex?'<span class="xhint">ⓘ</span>':'')+'<button class="sedit'+(s._mod?' did':'')+'" data-di="'+s._di+'" data-si="'+s.si+'">✎</button>'+actBtn(ak)+'</div>'+
        (s.o?'<div class="s-note">'+s.o+'</div>':'')+
        (ex?'<div class="s-x">'+ex+'</div>':'');
     let lk='';
@@ -819,10 +843,11 @@ function render(){
   $('#addbtn').onclick=()=>$('#nform').classList.toggle('on');
   $('#nf-s').onclick=()=>{const t=$('#nf-t').value.trim();if(!t)return;
     let l=$('#nf-l').value.trim();if(l&&!/^https?:\/\//i.test(l))l='https://'+l;
-    (NOTES[d.d]=NOTES[d.d]||[]).push({h:$('#nf-h').value||'12:00',t:t,l:l,d:$('#nf-d').value.trim()});
+    (NOTES[d.d]=NOTES[d.d]||[]).push({id:nid(),h:$('#nf-h').value||'12:00',t:t,l:l,d:$('#nf-d').value.trim()});
     saveNotes();render();renderMapDays();};
   document.querySelectorAll('.sedit').forEach(b=>b.onclick=e=>{e.stopPropagation();
     if(b.dataset.ni!=null)openNoteEditor(+b.dataset.ni);else openEditor(b.dataset.di!=null?+b.dataset.di:sel,+b.dataset.si);});
+  document.querySelectorAll('.sact').forEach(b=>b.onclick=e=>{e.stopPropagation();cycleAct(b.dataset.k);});
   const rb=document.getElementById('restday');
   if(rb)rb.onclick=async()=>{delK.forEach(k=>delete OVR[k]);await saveOvr();render();renderMapDays();};
   chips.children[sel]&&chips.children[sel].scrollIntoView({inline:'center',block:'nearest'});
@@ -876,7 +901,10 @@ async function loadWeather(d){
 }
 let NOTES={};const NKEY='giappone2026-notes';
 function esc(t){return t.replace(/[<>&"]/g,c=>({'<':'&lt;','>':'&gt;','&':'&amp;','"':'&quot;'}[c]));}
-async function loadNotes(){const v=await stGet(NKEY);if(v)try{NOTES=JSON.parse(v);}catch(e){}}
+function nid(){return Date.now().toString(36)+Math.random().toString(36).slice(2,7);}
+async function loadNotes(){const v=await stGet(NKEY);if(v)try{NOTES=JSON.parse(v);}catch(e){}
+  let ch=false;Object.keys(NOTES).forEach(k=>(NOTES[k]||[]).forEach(x=>{if(!x.id){x.id=nid();ch=true;}}));
+  if(ch)saveNotes();}
 async function saveNotes(){await stSet(NKEY,JSON.stringify(NOTES));}
 loadNotes().then(()=>{render();renderMapDays();});
 
@@ -988,11 +1016,20 @@ $('#se-rest').onclick=async()=>{delete OVR[okey(ED[0],ED[1])];
   $('#stopedit').classList.remove('on');await saveOvr();render();renderMapDays();};
 loadOvr();
 
+/* ───────── SPUNTE ATTIVITÀ: fatta / saltata (condivise) ───────── */
+const AKEY='giappone2026-acts';let ACT={};
+function actBtn(k){const v=ACT[k];return '<button class="sact'+(v==='done'?' d':v==='skip'?' k':'')+'" data-k="'+k+'">'+(v==='done'?'✓ fatta':v==='skip'?'✗ saltata':'○')+'</button>';}
+async function loadAct(){await READY;try{const v=await stGet(AKEY);if(v)ACT=JSON.parse(v)||{};}catch(e){}render();}
+async function saveAct(){await stSet(AKEY,JSON.stringify(ACT));}
+function cycleAct(k){const v=ACT[k];if(v==='done')ACT[k]='skip';else if(v==='skip')delete ACT[k];else ACT[k]='done';saveAct();render();}
+loadAct();
+
 /* ───────── IDEE DI FAMIGLIA ───────── */
 let IDEAS=[],IDEA_WHO='Flo';
-function compactPlan(){return DAYS.map((d,di)=>{
-  const ns=(NOTES[d.d]||[]).map(x=>x.h+' '+x.t+(x.d?' ('+x.d+')':''));
-  return d.d.slice(5)+' · '+d.t+': '+effStops(di).map(s=>s.h+' '+s.n+(s.o?' ['+String(s.o).slice(0,80)+']':'')).concat(ns).join(' | ');
+function compactPlan(){const tag=k=>ACT[k]==='done'?' ✅FATTA':ACT[k]==='skip'?' ❌SALTATA':'';
+return 'Legenda stato: ✅FATTA = attività già svolta dal gruppo · ❌SALTATA = attività che il gruppo ha saltato.\n'+DAYS.map((d,di)=>{
+  const ns=(NOTES[d.d]||[]).map(x=>x.h+' '+x.t+(x.d?' ('+x.d+')':'')+tag('n:'+x.id));
+  return d.d.slice(5)+' · '+d.t+': '+effStops(di).map(s=>s.h+' '+s.n+(s.o?' ['+String(s.o).slice(0,80)+']':'')+tag('s:'+s._di+'|'+s.si)).concat(ns).join(' | ');
 }).join('\n');}
 document.querySelectorAll('#who-row .who').forEach(b=>b.onclick=()=>{
   document.querySelectorAll('#who-row .who').forEach(x=>x.classList.remove('sel'));
@@ -1016,6 +1053,7 @@ function renderIdeas(){
     +'<div class="idea-actions">'
     +(i.link&&/^https?:\/\//.test(i.link)?'<a class="mapchip" style="margin:0" href="'+esc(i.link)+'" target="_blank" rel="noopener">🗺 Maps</a>':'')
     +((!chat.length||chat[chat.length-1].r==='u')?'<button data-act="ai" data-id="'+i.id+'">🔮 '+(chat.length?'Riprova':'Chiedi a Yoshi')+'</button>':'')
+    +(chat.some(m=>m.r==='a')?'<button data-act="plan" data-id="'+i.id+'">📌 In itinerario</button>':'')
     +'<button data-act="done" data-id="'+i.id+'">'+(i.done?'Riapri':'✓ Fatta')+'</button>'
     +'<button data-act="del" data-id="'+i.id+'">Elimina</button>'
     +'</div></div>';}).join('');
@@ -1049,6 +1087,18 @@ async function ideaAction(act,id,btn){
     await fetch('/api/ideas/'+id,{method:'DELETE'});IDEAS=IDEAS.filter(x=>x.id!==id);renderIdeas();}
   if(act==='done'){idea.done=!idea.done;await fetch('/api/ideas/'+id,{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify({done:idea.done})});renderIdeas();}
   if(act==='ai'){btn.disabled=true;btn.textContent='🔮 Yoshi ci pensa…';await askAI(idea);renderIdeas();}
+  if(act==='plan'){
+    btn.disabled=true;const old=btn.textContent;btn.textContent='📌 Preparo la proposta…';
+    idea._err=null;
+    try{
+      const r=await fetch('/api/plan',{method:'POST',headers:{'Content-Type':'application/json'},
+        body:JSON.stringify({ideaId:idea.id,text:idea.text,who:idea.who,details:idea.details||'',itinerary:compactPlan(),history:ideaChat(idea)})});
+      let j=null;try{j=await r.json();}catch(e){}
+      if(r.ok&&j&&j.plan)showPlanConfirm(idea,j.plan);
+      else{idea._err=(j&&j.error)?String(j.error):('Errore HTTP '+r.status+' dal server.');renderIdeas();}
+    }catch(e){idea._err='Errore di rete: '+String(e.message||e);renderIdeas();}
+    if(btn.isConnected){btn.disabled=false;btn.textContent=old;}
+  }
   if(act==='reply'){
     const inp=document.getElementById('rin-'+id);
     const t=inp&&inp.value.trim();if(!t)return;
@@ -1060,6 +1110,75 @@ async function ideaAction(act,id,btn){
     renderIdeas();
   }
 }
+/* ── 📌 In itinerario: proposta di Yoshi con conferma ── */
+let PLANP=null;
+function normName(t){return String(t).toLowerCase().replace(/[^\p{L}\p{N} ]/gu,'').replace(/\s+/g,' ').trim();}
+function findStepByName(name){
+  const q=normName(name);if(!q)return null;
+  for(let di=0;di<DAYS.length;di++){
+    for(const s of effStops(di)){
+      const n1=normName(s.n),n2=normName(s._n0||'');
+      if(n1===q||n2===q||n1.includes(q)||q.includes(n1))return {type:'s',di:s._di,si:s.si,curDay:di,h:s.h,n:s.n};
+    }
+    const list=NOTES[DAYS[di].d]||[];
+    for(let xi=0;xi<list.length;xi++){
+      const nn=normName(list[xi].t);
+      if(nn===q||nn.includes(q)||q.includes(nn))return {type:'n',day:di,idx:xi,h:list[xi].h,n:list[xi].t};
+    }
+  }
+  return null;}
+function showPlanConfirm(idea,plan){
+  const ops=(Array.isArray(plan.ops)?plan.ops:[]).slice(0,4);
+  let ok=0,h='';
+  for(const op of ops){
+    if(op.op==='add'){
+      const di=DAYS.findIndex(d=>d.d===op.date);
+      if(di<0){op.op='skip';h+='<div class="pc-op"><span class="bad">⚠ Data fuori viaggio, salto:</span> '+esc(String(op.date||'?'))+' · '+esc(String(op.title||''))+'</div>';continue;}
+      ok++;h+='<div class="pc-op">➕ <b>'+fmt(op.date)+' · '+esc(String(op.h||'12:00'))+'</b> — '+esc(String(op.title||''))
+        +(op.note?'<br><span style="color:var(--sub)">'+esc(String(op.note))+'</span>':'')+'</div>';
+    }else if(op.op==='move'){
+      const t=findStepByName(op.match||'');op._t=t;
+      if(!t){h+='<div class="pc-op"><span class="bad">⚠ Voce non trovata, salto:</span> «'+esc(String(op.match||'?'))+'»</div>';continue;}
+      const nd=DAYS.findIndex(d=>d.d===op.newDate);
+      if(nd<0&&!op.newH){h+='<div class="pc-op"><span class="bad">⚠ Spostamento incompleto, salto:</span> «'+esc(t.n)+'»</div>';op._t=null;continue;}
+      ok++;h+='<div class="pc-op">🔀 Sposto <b>'+esc(t.n)+'</b> → '+(nd>=0?fmt(op.newDate):fmt(DAYS[t.type==='s'?t.curDay:t.day].d))+' · '+esc(String(op.newH||t.h))+'</div>';
+    }
+  }
+  if(!ops.length)h='<div class="pc-op">Yoshi non ha trovato nulla di concreto da inserire: continua la conversazione e riprova.</div>';
+  PLANP={idea:idea,ops:ops,summary:String(plan.summary||'')};
+  $('#pc-sum').textContent=PLANP.summary;
+  $('#pc-ops').innerHTML=h;
+  $('#pc-ok').style.display=ok?'':'none';
+  $('#planconf').classList.add('on');}
+async function applyPlan(){
+  const P=PLANP;if(!P)return;
+  const ob=$('#pc-ok');ob.disabled=true;ob.textContent='Inserisco…';
+  let tn=false,to=false;
+  for(const op of P.ops){
+    if(op.op==='add'){
+      const di=DAYS.findIndex(d=>d.d===op.date);if(di<0)continue;
+      (NOTES[op.date]=NOTES[op.date]||[]).push({id:nid(),h:String(op.h||'12:00'),t:String(op.title||'Attività'),
+        l:op.maps?gm(String(op.maps)):'',d:(op.note?String(op.note)+' · ':'')+'📌 inserita da Yoshi'});
+      tn=true;
+    }else if(op.op==='move'&&op._t){
+      const t=op._t,nd=DAYS.findIndex(d=>d.d===op.newDate);
+      if(t.type==='s'){const k=okey(t.di,t.si);const o=Object.assign({},OVR[k]||{});
+        if(op.newH)o.h=String(op.newH);if(nd>=0)o.d=nd;OVR[k]=o;to=true;}
+      else{const list=NOTES[DAYS[t.day].d]||[];const x=list[t.idx];
+        if(x){if(op.newH)x.h=String(op.newH);if(nd>=0&&nd!==t.day){list.splice(t.idx,1);(NOTES[DAYS[nd].d]=NOTES[DAYS[nd].d]||[]).push(x);}tn=true;}}
+    }
+  }
+  if(tn)await saveNotes();if(to)await saveOvr();
+  render();renderMapDays();
+  const idea=P.idea;
+  idea.chat=ideaChat(idea).concat([{r:'u',t:'📌 Inserito in itinerario: '+(P.summary||'ok'),w:'app'}]);
+  try{await fetch('/api/ideas/'+idea.id,{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify({chat:idea.chat})});}catch(e){}
+  PLANP=null;$('#planconf').classList.remove('on');ob.disabled=false;ob.textContent='✓ Conferma e inserisci';
+  renderIdeas();}
+$('#pc-ok').onclick=applyPlan;
+$('#pc-no').onclick=()=>{PLANP=null;$('#planconf').classList.remove('on');};
+$('#planconf').onclick=e=>{if(e.target.id==='planconf'){PLANP=null;$('#planconf').classList.remove('on');}};
+
 async function loadIdeas(){
   await READY;
   if(!SRV){$('#ideanote').textContent='⚠ Le idee condivise funzionano solo sul sito online.';return;}
