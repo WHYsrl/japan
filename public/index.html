@@ -479,21 +479,22 @@ const DAYS=[
  {h:"16:10",n:"Kenroku-en",o:"Ingresso Katsurazaka",m:"Kenrokuen Garden"},
  {h:"17:10",n:"Higashi Chaya",o:"PRIMA Imai Kinpaku, poi gelato Hakuichi IN COPPETTA",m:"Higashi Chaya District"},
  {h:"20:45",n:"Cena Fuwari",o:"Owari-chō, 8 min a piedi · poi Katamachi",m:"Fuwari Kanazawa Owaricho",c:"eat"},
- {h:"21:45",n:"In stazione domattina: biglietti del 17 + posti del 18",b:"warn"}]},
+ {h:"21:45",n:"✅ Treni 17/8 e 18/8 comprati online (e5489)",o:"Domattina ritiro fisico in stazione: AMEX fisica + PIN 4 cifre · prenotazioni 42648 + 40193",b:"ok"}]},
 {d:"2026-08-17",t:"Kanazawa → Kaga · ryokan 🏯",s:"Zaini mai in spalla: piano navetta",st:[
  {h:"09:00",n:"Kanazawa Castle + Gyokusen'inmaru",o:"Zaini restano al Sanraku",m:"Kanazawa Castle"},
  {h:"10:45",n:"Ritiro zaini, check-out"},
- {h:"11:30",n:"Tsurugi → Kagaonsen 11:55",c:"tr"},
- {h:"12:00",n:"Navetta Rurikoh (o taxi 10 min)",o:"Deposito zaini al ryokan prima del check-in",c:"tr"},
+ {h:"11:10",n:"Ritiro biglietti e5489 (oggi + 18/8) 🎫",o:"Macchinette verdi JR lato Shinkansen · AMEX fisica + PIN · escono TUTTI i biglietti, anche quelli del 18",c:"tr",b:"warn"},
+ {h:"11:54",n:"Kagayaki 507 → Kagaonsen 12:08",o:"Prenotazione 42648 · carrozza 7, posti 7A·7B·7C",c:"tr"},
+ {h:"12:15",n:"Navetta Rurikoh (o taxi 10 min)",o:"Treno arriva 12:08: riconfermare orario navetta col ryokan · deposito zaini prima del check-in",c:"tr"},
  {h:"12:45",n:"Pranzo a Yamanaka",o:"NO soba (quasi sempre col frumento)",m:"Yamanaka Onsen",c:"eat",b:"warn"},
  {h:"13:45",n:"Gole di Kakusenkei",o:"Ponte Korogi + passerella sul fiume, tutta in ombra",m:"Kakusenkei Gorge"},
  {h:"15:20",n:"Check-in Rurikoh · onsen",o:"Hoshi Wing · rotenburo in camera",m:"Rurikoh Yamashiro Onsen"},
  {h:"18:30",n:"Cena kaiseki",o:"GF per Leo concordato col ryokan",c:"eat",b:"ok"},
  {h:"21:00",n:"Show taiko Ikkō-ikki 🥁",b:"ok"},
  {h:"21:45",n:"Bon-odori a Yamashiro 🏮",o:"Da verificare in reception: in Obon molte città onsen ballano in piazza soyu la sera — se c'è, è a 5 min a piedi in yukata",c:"opz",b:"opt"}]},
-{d:"2026-08-18",t:"Kaga → Kyoto",s:"Cambio a Tsuruga: binario di fronte, ~10 min",st:[
- {h:"10:00",n:"Check-out (pagamento) · navetta stazione"},
- {h:"10:40",n:"Tsurugi → Tsuruga → Thunderbird",o:"Posti riservati · arrivo Kyoto ~12:15",c:"tr"},
+{d:"2026-08-18",t:"Kaga → Kyoto",s:"Cambio a Tsuruga: binario di fronte, 13 min",st:[
+ {h:"10:00",n:"Check-out (pagamento) · navetta stazione",o:"In stazione entro le 10:15: il treno parte alle 10:24 · biglietti già ritirati ieri"},
+ {h:"10:24",n:"Tsurugi 17 → Tsuruga → Thunderbird 18",o:"Prenotazione 40193 · arrivo Kyoto 12:09",c:"tr"},
  {h:"12:30",n:"Taxi Capella · deposito bagagli",o:"#560961377 · camera dalle 15",m:"Capella Kyoto"},
  {h:"13:00",n:"Pranzo Nishiki Market",m:"Nishiki Market",c:"eat"},
  {h:"15:00",n:"Ninenzaka · Sannenzaka",m:"Ninenzaka Kyoto"},
@@ -549,7 +550,7 @@ const DAYS=[
 
 const CODES={
  volo:[["PNR Qatar","8VTMGL"],["Andata","QR114 + QR812 · 10/8 22:40"],["⚠ QR812 Doha","parte 07:30 (non 07:50)"],["Ritorno","QR803 + QR115 · 24/8 18:55"]],
- treni:[["Eki-Net 16/8 (ritiro fisico!)","E41447"],["Membership JR-East","411437070"],["Kyoto→Nara 21/8 (QR)","ARS_KINTETSU_TK-20260809-53QA"],["Aoniyoshi 6C·6D","A30110"],["Aoniyoshi 7C·7D","A12048"],["Certification","59148"]],
+ treni:[["Eki-Net 16/8 (ritiro fisico!)","E41447"],["e5489 17/8 Kanazawa→Kagaonsen (ritiro fisico!)","42648"],["e5489 18/8 Kagaonsen→Kyoto (ritiro fisico!)","40193"],["e5489 ritiro","AMEX fisica ****6001 + PIN 4 cifre"],["Membership JR-East","411437070"],["Kyoto→Nara 21/8 (QR)","ARS_KINTETSU_TK-20260809-53QA"],["Aoniyoshi 6C·6D","A30110"],["Aoniyoshi 7C·7D","A12048"],["Certification","59148"]],
  hotel:[["Peninsula Tokyo 11–16","17695SG597187"],["Sanraku Kanazawa 16–17","conferma via mail 3/8"],["Rurikoh Kaga 17–18","in conferma finale"],["Capella Kyoto 18–22","560961377"],["Benesse Naoshima 22–23","202608020006936.01"],["Centara Osaka 23–24","39582SG596190"]]};
 
 const CHECKS=[
@@ -577,7 +578,7 @@ const CHECKS=[
   ["12/8 h10:35 · Suica fisica per Leo a Yurakucho",""],
   ["16/8 h9:00 ⏰ · slot piscina Erlich dal treno","sveglia sul telefono!"],
   ["16/8 h8:35 · ritiro biglietti Tokyo Station","carta + E41447"],
-  ["16/8 sera · biglietti 17 + posti 18 in stazione",""],
+  ["17/8 h11:10 · ritiro biglietti e5489 a Kanazawa","AMEX fisica + PIN · prenot. 42648 + 40193"],
   ["16/8 h8:00 · Yamato: bagagli → Kyoto",""],
   ["22/8 h8:30 · Yamato: bagagli → KIX",""]]}];
 
@@ -618,11 +619,12 @@ const EXTRAS={
 "21st Century Museum + piscina":"La mail dello slot piscina dà ~20 min per presentarsi alla Galleria 6: restate in zona museo all'orario scelto.",
 "Higashi Chaya":"PRIMA Imai Kinpaku (chiude ~18): doratura e souvenir · poi gelato foglia d'oro da Hakuichi — per Leo IN COPPETTA, non nel cono.",
 "Cena Fuwari":"Izakaya moderna a Owari-chō, 8 min a piedi · celiachia annotata in prenotazione: riconfermate al tavolo mostrando la card.",
-"Tsurugi → Kagaonsen 11:55":"Carrozze libere 1-2, biglietto fatto ieri sera in stazione · 25 minuti di viaggio.",
+"Ritiro biglietti e5489 (oggi + 18/8) 🎫":"Macchinette verdi JR West (logo 5489) lato Shinkansen di Kanazawa · English → «Pick up reserved tickets (e5489)» → inserire l'AMEX FISICA usata per l'acquisto → PIN di 4 cifre · stampano in un colpo solo i biglietti di oggi (42648) E del 18 (40193) · senza ritiro non si può salire a bordo.",
+"Kagayaki 507 → Kagaonsen 12:08":"Prenotazione 42648 · carrozza 7, posti 7A·7B·7C (riservati, tutti vicini) · 14 minuti di viaggio.",
 "Navetta Rurikoh (o taxi 10 min)":"Se la navetta è confermata vi aspetta al piazzale · altrimenti: fila taxi davanti alla stazione, dite \"Rurikoh, Yamashiro onsen\" (~¥1.800).",
 "Gole di Kakusenkei":"Percorso in ombra lungo il fiume · ponte Korogi → passerella → caffè Kakusenkei Kawadoko (tè sul fiume, stagionale) · il taxi di rientro lo chiama il caffè o si torna alla via principale.",
 "Check-in Rurikoh · onsen":"Yukata in camera: si tiene per cena e taiko · rotenburo privato in camera = zero pensieri tatuaggi/timidezze · onsen grande: lavarsi PRIMA di immergersi.",
-"Tsurugi → Tsuruga → Thunderbird":"A Tsuruga si scende e il Thunderbird è al binario DI FRONTE (~10 min, seguire i cartelli viola Kansai) · posti riservati fatti a Kanazawa.",
+"Tsurugi 17 → Tsuruga → Thunderbird 18":"Prenotazione 40193 · Tsurugi 17: carrozza 10, posti 9A·9B·9C · a Tsuruga il Thunderbird 18 è al binario DI FRONTE (13 min, seguire i cartelli viola Kansai) · Thunderbird: carrozza 9, posti 11A·11B + 12A (uno nella fila dietro) · biglietti ritirati il 17 a Kanazawa.",
 "Pranzo Nishiki Market":"Si mangia FERMI accanto al banco (vietato camminare mangiando) · sashimi, uova dolci occhio (mirin ok, ma chiedete del soy), frutta.",
 "Kiyomizu-dera":"Salita di Sannenzaka: negozi di hanko same-day se ad Asakusa non aveste trovato · acqua della cascata Otowa: 3 getti, se ne beve UNO.",
 "Fushimi Inari":"Keihan da Gion-Shijō → Fushimi-Inari, 5 min a piedi · fino allo Yotsutsuji (~45 min salita) bastano e avanzano · distributori d'acqua lungo il percorso.",
@@ -676,12 +678,12 @@ const TT={
 "Higashi Chaya":"🚕 8 min o 🚶 25",
 "Cena Fuwari":"🚶 8 min dall'hotel",
 "Kanazawa Castle + Gyokusen'inmaru":"🚶 15 min dal Sanraku",
-"Tsurugi → Kagaonsen 11:55":"⏱ 25 min di treno",
+"Kagayaki 507 → Kagaonsen 12:08":"⏱ 14 min di treno",
 "Navetta Rurikoh (o taxi 10 min)":"🚐 10 min",
 "Pranzo a Yamanaka":"🚕 15 min dal ryokan",
 "Gole di Kakusenkei":"🚶 5 min dal centro di Yamanaka",
 "Check-in Rurikoh · onsen":"🚕 15 min dalle gole",
-"Tsurugi → Tsuruga → Thunderbird":"⏱ 25 min + cambio 10 + 55 min",
+"Tsurugi 17 → Tsuruga → Thunderbird 18":"⏱ 37 min + cambio 13 + 55 min",
 "Taxi Capella · deposito bagagli":"🚕 10 min dalla stazione",
 "Pranzo Nishiki Market":"🚶 10 min",
 "Ninenzaka · Sannenzaka":"🚕 10 min o 🚌 15",
