@@ -547,17 +547,21 @@ const DAYS=[
  {h:"15:55",n:"AONIYOSHI n.9506 → Kyoto 16:31 💜",o:"Carrozza 4 · 6C-6D + 7C-7D · base fare con Suica",c:"tr",b:"ok"}]},
 {d:"2026-08-22",t:"Kyoto → Naoshima 🎨",s:"Chichu alle 14:30: biglietto nell'account Benesse Art Site",st:[
  {h:"08:30",n:"Check-out + Yamato → KIX",o:"Consegna bagagli il 24 in aeroporto",b:"warn"},
- {h:"09:00",n:"Shinkansen → Okayama",o:"Poi locale per Uno",c:"tr"},
- {h:"11:00",n:"Traghetto Uno → Miyanoura ~12:30",m:"Uno Port",c:"tr"},
+ {h:"08:45",n:"Ritiro biglietti e5489 (22+23/8) 🎫",o:"Lato NORD/Karasuma della stazione: macchinette verdi JR West · AMEX fisica + PIN · escono ANCHE quelli del 23",c:"tr",b:"warn"},
+ {h:"09:02",n:"Nozomi 7 → Okayama 10:05",o:"Prenotazione 43713 · carrozza 3, posti 14B·14C·14D",c:"tr"},
+ {h:"10:20",n:"Locale linea Uno → porto di Uno",o:"Binari 5-8, direzione Uno · ~50 min · Suica ok",c:"tr"},
+ {h:"12:15",n:"Traghetto Uno → Miyanoura 12:35",o:"Biglietti al porto (3 min a piedi dalla stazione) · se siete a Uno entro le 10:55 c'è anche la corsa delle 11:00",m:"Uno Port",c:"tr"},
  {h:"13:00",n:"Navetta Benesse · deposito · pranzo leggero",c:"eat"},
  {h:"14:30",n:"CHICHU ART MUSEUM",o:"Monet, Turrell, De Maria — prenotato",m:"Chichu Art Museum",b:"ok"},
  {h:"16:30",n:"Check-in Beach Suite · Pumpkin al tramonto",m:"Yellow Pumpkin Naoshima"},
  {h:"18:30",n:"Cena kaiseki Benesse",o:"Confermata, GF ok (cucina condivisa accettata)",c:"eat",b:"ok"},
  {h:"21:00",n:"Benesse House Museum · accesso serale ospiti"}]},
-{d:"2026-08-23",t:"Naoshima → Osaka · sumo 🥋",s:"Traghetto delle 12 vincolante per Hirakuza",st:[
- {h:"09:00",n:"Honmura: Art House Project + ANDO Museum",m:"Art House Project Naoshima"},
- {h:"12:00",n:"Traghetto → Uno → Okayama",c:"tr"},
- {h:"13:30",n:"Shinkansen → Shin-Osaka",o:"Occhio ai Kodama serie 500 🚀",c:"tr"},
+{d:"2026-08-23",t:"Naoshima → Osaka · sumo 🥋",s:"⚠ Traghetto delle 11:10 VINCOLANTE: il successivo (12:45) fa perdere il Mizuho",st:[
+ {h:"09:00",n:"Honmura: Art House Project + ANDO Museum",o:"Stop entro le 10:30: bus/navetta per Miyanoura",m:"Art House Project Naoshima"},
+ {h:"10:50",n:"Al porto di Miyanoura · biglietti traghetto",c:"tr",b:"warn"},
+ {h:"11:10",n:"Traghetto Miyanoura → Uno 11:30",c:"tr"},
+ {h:"11:50",n:"Locale linea Uno → Okayama",o:"~50 min · Suica ok · margine comodo",c:"tr"},
+ {h:"13:33",n:"Mizuho 606 → Shin-Osaka 14:21",o:"Prenotazione 43342 · carrozza 5, posti 15A·15B·16A · biglietti già ritirati a Kyoto",c:"tr"},
  {h:"16:00",n:"Check-in Centara Grand Namba",o:"39582SG596190",m:"Centara Grand Hotel Osaka"},
  {h:"17:30",n:"Ingresso HIRAKUZA (Namba Parks 8F)",o:"Show 18:00-19:00 · stesso complesso dell'hotel",m:"Hirakuza Osaka Namba Parks",b:"warn"},
  {h:"19:30",n:"Dōtonbori a piedi",m:"Dotonbori",c:"eat"},
@@ -572,7 +576,7 @@ const DAYS=[
 
 const CODES={
  volo:[["PNR Qatar","8VTMGL"],["Andata","QR114 + QR812 · 10/8 22:40"],["⚠ QR812 Doha","parte 07:30 (non 07:50)"],["Ritorno","QR803 + QR115 · 24/8 18:55"]],
- treni:[["Eki-Net 16/8 (ritiro fisico!)","E41447"],["e5489 17/8 Kanazawa→Kagaonsen (ritiro fisico!)","42648"],["e5489 18/8 Kagaonsen→Kyoto (ritiro fisico!)","40193"],["e5489 ritiro","AMEX fisica ****6001 + PIN 4 cifre"],["Membership JR-East","411437070"],["Kyoto→Nara 21/8 (QR)","ARS_KINTETSU_TK-20260809-53QA"],["Aoniyoshi 6C·6D","A30110"],["Aoniyoshi 7C·7D","A12048"],["Certification","59148"]],
+ treni:[["Eki-Net 16/8 (ritiro fisico!)","E41447"],["e5489 17/8 Kanazawa→Kagaonsen (ritiro fisico!)","42648"],["e5489 18/8 Kagaonsen→Kyoto (ritiro fisico!)","40193"],["e5489 22/8 Kyoto→Okayama (ritiro fisico!)","43713"],["e5489 23/8 Okayama→Shin-Osaka (ritiro fisico!)","43342"],["e5489 ritiro","AMEX fisica ****6001 + PIN 4 cifre"],["Membership JR-East","411437070"],["Kyoto→Nara 21/8 (QR)","ARS_KINTETSU_TK-20260809-53QA"],["Aoniyoshi 6C·6D","A30110"],["Aoniyoshi 7C·7D","A12048"],["Certification","59148"]],
  hotel:[["Peninsula Tokyo 11–16","17695SG597187"],["Sanraku Kanazawa 16–17","conferma via mail 3/8"],["Rurikoh Kaga 17–18","in conferma finale"],["Capella Kyoto 18–22","560961377"],["Benesse Naoshima 22–23","202608020006936.01"],["Centara Osaka 23–24","39582SG596190"]]};
 
 const CHECKS=[
@@ -586,7 +590,7 @@ const CHECKS=[
   ["Capyneko Cafe 15/8 ~17:30",""],
   ["Cerimonia del tè 19/8 ~16:00","chiedere wagashi GF"],
   ["Nezu Museum 12/8 14:30 + slot Creative Museum",""],
-  ["smartEX: account + treni 22/8 e 23/8",""],
+  ["Treni 22 e 23/8 ✓ comprati su e5489 il 21/8","niente smartEX · ritiro fisico a Kyoto il 22 mattina"],
   ["Biglietti USJ 24/8","valutare Express Pass Harry Potter"],
   ["Soho House 15/8 (all'ok di Floriana)","tavolo dall'app + nota celiachia"]]},
  {g:"Domani prima di partire",i:[
@@ -602,6 +606,8 @@ const CHECKS=[
   ["16/8 h8:35 · ritiro biglietti Tokyo Station","carta + E41447"],
   ["17/8 h11:10 · ritiro biglietti e5489 a Kanazawa","AMEX fisica + PIN · prenot. 42648 + 40193"],
   ["16/8 h8:00 · Yamato: bagagli → Kyoto",""],
+  ["22/8 h8:45 · ritiro biglietti e5489 a Kyoto (lato nord)","AMEX fisica + PIN · prenot. 43713 + 43342"],
+  ["23/8 h11:10 ⚠ · traghetto Miyanoura → Uno","il 12:45 fa perdere il Mizuho: in porto alle 10:50"],
   ["22/8 h8:30 · Yamato: bagagli → KIX",""]]}];
 
 const PHRASES=[
@@ -655,11 +661,15 @@ const EXTRAS={
 "PRANZO SARASOJYU":"SOLO CONTANTI · tavolo riservato a nome Bonifati · tutto il locale è 100% gluten free: Leo ordina QUALSIASI cosa. Momento libertà.",
 "Nakatanidou: mochi battuto":"Il pounding show è a orari casuali: se battono, filmate · mochi yomogi appena fatto = GF (riso e artemisia) — chiedete conferma no-farina sul ripieno.",
 "AONIYOSHI n.9506 → Kyoto 16:31 💜":"Carrozza 4, posti finestrino 6C-6D + 7C-7D · e-ticket VIVO dal sito (screenshot non valido) · banco vendita in carrozza 2: dolci NO per Leo, birra craft e caffè sì · base fare: Suica ai tornelli.",
-"Shinkansen → Okayama":"smartEX: QR o carta associata ai tornelli · a Okayama: locale linea Uno (~50 min) fino al capolinea porto.",
-"Traghetto Uno → Miyanoura ~12:30":"Biglietti al porto (~¥300/¥150, contanti o IC) · 20 min di traversata · ponte esterno per le foto.",
+"Ritiro biglietti e5489 (22+23/8) 🎫":"Fatevi lasciare dal taxi sul lato NORD (ingresso centrale/Karasuma): le macchinette verdi JR West (logo 5489) sono accanto ai tornelli centrali — quelle del lato sud/Hachijo sono JR Central e NON leggono e5489. Servono l'AMEX fisica dell'acquisto + il PIN di 4 cifre: escono in un colpo solo i biglietti del 22 (prenotazione 43713) e del 23 (43342). Poi seguite i cartelli 新幹線/Shinkansen fino ai tornelli di trasferimento, ~5-7 min a piedi.",
+"Nozomi 7 → Okayama 10:05":"Prenotazione 43713 · carrozza 3, posti 14B·14C·14D (stessa fila) · volendo la Green: ogni biglietto ammette UNA modifica gratuita allo sportello, chiedete al ritiro.",
+"Locale linea Uno → porto di Uno":"A Okayama dai tornelli di trasferimento scendete ai binari 5-8, cartelli gialli 宇野線/Uno Line, treno LOCALE direzione Uno — NON il Marine Liner per Takamatsu · alcune corse cambiano a Chayamachi (binario di fronte) · ~50 min, Suica ok · a Uno il porto è dritto davanti all'uscita, 3 min a piedi.",
+"Traghetto Uno → Miyanoura 12:35":"Biglietteria Shikoku Kisen al porto: ~¥370 adulti / ¥190 bambini, contanti o IC · traversata 20 min, ponte esterno per le foto · corse mattutine utili: 11:00 e 12:15 — con l'arrivo a Okayama alle 10:05 quella realistica è la 12:15.",
 "CHICHU ART MUSEUM":"Biglietto nell'account Benesse Art Site (eventos.tokyo, login gmail) · niente foto all'interno · con sole forte danno ombrellini · Monet si guarda scalzi.",
 "Cena kaiseki Benesse":"Confermata con GF per Leo (cucina condivisa accettata) · dress smart casual · tavolo con vista tramonto se arrivate puntuali.",
-"Shinkansen → Shin-Osaka":"smartEX · se in fascia c'è un KODAMA SERIE 500 (il treno-jet), prendetelo per Leo anche se più lento: è l'ultimo dei suoi giorni di gloria.",
+"Al porto di Miyanoura · biglietti traghetto":"⚠ ORARIO CHIAVE del giorno: il traghetto dopo l'11:10 è alle 12:45 e arriva troppo tardi per il Mizuho delle 13:33 · in porto 15-20 min prima, biglietti ~¥370/¥190 · il battello veloce delle 12:30 da Honmura NON basta: non fidatevi.",
+"Traghetto Miyanoura → Uno 11:30":"20 min di traversata · da Uno: stazione a 3 min, locale linea Uno per Okayama (eventuale cambio a Chayamachi).",
+"Mizuho 606 → Shin-Osaka 14:21":"Prenotazione 43342 · carrozza 5: 15A·15B (coppia lato finestrino) + 16A subito dietro · sedili larghi 2+2 stile Kyushu — niente Kodama serie 500 in fascia utile, questo è il premio di consolazione · biglietti già in tasca dal 22.",
 "Ingresso HIRAKUZA (Namba Parks 8F)":"Stesso complesso dell'hotel: ascensore e siete dentro · ingresso 17:30, show 18:00-19:00 · bento GF concordato via mail: ritiro all'ingresso.",
 "USJ: Wizarding World per primo 🪄":"Cancelli spesso aprono PRIMA dell'orario ufficiale: alle 8:00 siate lì · dritti a Harry Potter, il resto dopo · borsoni nei coin locker grandi FUORI dai cancelli · burrobirra: senza glutine (verificate la versione frozen).",
 "Ritiro bagagli Yamato · check-in":"Sportello Yamato al T1 KIX, arrivi · poi check-in Qatar (apre 3h prima) · duty free dopo i controlli per gli ultimi KitKat."
@@ -726,14 +736,16 @@ const TT={
 "Nakatanidou: mochi battuto":"🚶 10 min",
 "Kasuga Taisha (o Kōfuku-ji)":"🚶 15 min",
 "Al binario":"🚶 15-20 min dal Kasuga — calcolarli!",
-"Shinkansen → Okayama":"⏱ ~1h + 🚃 locale Uno 50 min",
-"Traghetto Uno → Miyanoura ~12:30":"⛴ 20 min",
+"Nozomi 7 → Okayama 10:05":"⏱ 1h03",
+"Locale linea Uno → porto di Uno":"🚃 ~50 min + 🚶 3",
+"Traghetto Uno → Miyanoura 12:35":"⛴ 20 min",
 "Navetta Benesse · deposito · pranzo leggero":"🚐 10 min",
 "CHICHU ART MUSEUM":"🚐 navetta interna 5 min",
 "Check-in Beach Suite · Pumpkin al tramonto":"🚶 10 min sulla spiaggia",
 "Honmura: Art House Project + ANDO Museum":"🚐 navetta 10 min",
-"Traghetto → Uno → Okayama":"⛴ 20 min + 🚃 50",
-"Shinkansen → Shin-Osaka":"⏱ 45 min",
+"Traghetto Miyanoura → Uno 11:30":"⛴ 20 min",
+"Locale linea Uno → Okayama":"🚃 ~50 min",
+"Mizuho 606 → Shin-Osaka 14:21":"⏱ 48 min",
 "Check-in Centara Grand Namba":"🚕 20 min da Shin-Osaka",
 "Ingresso HIRAKUZA (Namba Parks 8F)":"🛗 stesso edificio: ascensore all'8F",
 "Dōtonbori a piedi":"🚶 8 min",
